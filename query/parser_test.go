@@ -18,8 +18,6 @@ func Test_Parser(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		t.Log(q)
-
 		if len(q.Args) != 0 {
 			t.Fatalf("should have 0 args")
 		}
@@ -37,8 +35,6 @@ func Test_Parser(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		t.Log(q)
 
 		if len(q.Args) != 0 {
 			t.Fatalf("should have 0 args")
@@ -80,8 +76,6 @@ func Test_Parser(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		t.Log(q)
-
 		if len(q.Args) != 0 {
 			t.Fatalf("should have 0 args")
 		}
@@ -117,8 +111,6 @@ func Test_Parser(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		t.Log(q)
 
 		if len(q.Args) != 0 {
 			t.Fatalf("should have 0 args")

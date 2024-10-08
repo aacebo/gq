@@ -34,6 +34,10 @@ func (self *_Parser) Parse() (Query, error) {
 			break
 		}
 
+		if self.match(RIGHT_BRACE) {
+			continue
+		}
+
 		name, subQuery, err := self.parseField()
 
 		if err != nil {

@@ -132,12 +132,11 @@ func (self Object[T]) getMapKey(key string, object reflect.Value) any {
 }
 
 func (self Object[T]) setMapKey(key string, val any, object reflect.Value) error {
-	value := object.MapIndex(reflect.ValueOf(key))
-
-	if value.CanSet() {
-		value.Set(reflect.ValueOf(val))
+	if object.CanSet() && object.IsNil() {
+		object.Set(reflect.MakeMapWithSize(reflect.TypeFor[T](), 0))
 	}
 
+	object.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
 	return nil
 }
 
