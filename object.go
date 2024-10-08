@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/aacebo/gq/query"
 )
@@ -36,6 +37,7 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 	}
 
 	object := new(T)
+	err := NewEmptyError(self.Name)
 
 	for key, subQuery := range params.Query.Fields {
 		schema, exists := self.Fields[key]
@@ -45,40 +47,47 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		}
 
 		if field, ok := schema.(Field); ok && field.Args != nil {
-			if err := field.Args.Validate(subQuery.Args); err != nil {
-				return nil, err
+			if e := field.Args.Validate(subQuery.Args); e != nil {
+				err = err.Add(e)
+				continue
 			}
 		}
 
-		value, err := schema.Resolve(Params{
+		value, e := schema.Resolve(Params{
 			Query:   subQuery,
 			Parent:  params.Value,
 			Value:   self.getKey(key, params.Value),
 			Context: params.Context,
 		})
 
-		if err != nil {
-			return nil, err
+		if e != nil {
+			err = err.Add(e)
+			continue
 		}
 
 		if field, ok := schema.(Field); ok && field.Type != nil {
-			res, err := field.Type.Resolve(Params{
+			res, e := field.Type.Resolve(Params{
 				Query:   subQuery,
 				Parent:  params.Value,
 				Value:   value,
 				Context: params.Context,
 			})
 
-			if err != nil {
-				return nil, err
+			if e != nil {
+				err = err.Add(e)
+				continue
 			}
 
 			value = res
 		}
 
-		if err = self.setKey(key, value, object); err != nil {
-			return nil, err
+		if e = self.setKey(key, value, object); e != nil {
+			err = err.Add(e)
 		}
+	}
+
+	if len(err.Errors) > 0 {
+		return nil, err
 	}
 
 	return *object, nil
@@ -177,7 +186,7 @@ func (self Object[T]) setStructKey(key string, val any, object reflect.Value) er
 	name, exists := self.getStructFieldByName(key, object)
 
 	if !exists {
-		return fmt.Errorf("[%s] => field `%s` not found", self.Name, key)
+		return NewError(key, "field not found")
 	}
 
 	value := object.FieldByName(name)
@@ -211,6 +220,10 @@ func (self Object[T]) getStructFieldByName(name string, object reflect.Value) (s
 
 		if tag == "" {
 			tag = field.Name
+		}
+
+		if i := strings.Index(tag, ","); i > -1 {
+			tag = tag[:i]
 		}
 
 		if tag == "" || tag == "-" {

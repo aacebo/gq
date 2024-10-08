@@ -30,7 +30,7 @@ func Test_Object(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 
 			value, ok := res.(map[string]string)
@@ -40,15 +40,15 @@ func Test_Object(t *testing.T) {
 			}
 
 			if value["id"] != "1" {
-				t.Errorf("expected `%s`, received `%s`", "1", value["id"])
+				t.Fatalf("expected `%s`, received `%s`", "1", value["id"])
 			}
 
 			if value["name"] != "dev" {
-				t.Errorf("expected `%s`, received `%s`", "dev", value["name"])
+				t.Fatalf("expected `%s`, received `%s`", "dev", value["name"])
 			}
 
 			if value["email"] != "dev@gmail.com" {
-				t.Errorf("expected `%s`, received `%s`", "dev@gmail.com", value["email"])
+				t.Fatalf("expected `%s`, received `%s`", "dev@gmail.com", value["email"])
 			}
 		})
 
@@ -109,7 +109,7 @@ func Test_Object(t *testing.T) {
 		type User struct {
 			ID    string  `json:"id"`
 			Name  string  `json:"name"`
-			Email *string `json:"email"`
+			Email *string `json:"email,omitempty"`
 		}
 
 		t.Run("should resolve", func(t *testing.T) {
@@ -134,7 +134,7 @@ func Test_Object(t *testing.T) {
 			})
 
 			if err != nil {
-				t.Error(err)
+				t.Fatal(err)
 			}
 
 			value, ok := res.(User)
@@ -144,19 +144,19 @@ func Test_Object(t *testing.T) {
 			}
 
 			if value.ID != "1" {
-				t.Errorf("expected `%s`, received `%s`", "1", value.ID)
+				t.Fatalf("expected `%s`, received `%s`", "1", value.ID)
 			}
 
 			if value.Name != "dev" {
-				t.Errorf("expected `%s`, received `%s`", "dev", value.Name)
+				t.Fatalf("expected `%s`, received `%s`", "dev", value.Name)
 			}
 
 			if value.Email == nil {
-				t.Errorf("expected `%s`, received nil", "dev@gmail.com")
+				t.Fatalf("expected `%s`, received nil", "dev@gmail.com")
 			}
 
 			if *value.Email != "dev@gmail.com" {
-				t.Errorf("expected `%s`, received `%s`", "dev@gmail.com", *value.Email)
+				t.Fatalf("expected `%s`, received `%s`", "dev@gmail.com", *value.Email)
 			}
 		})
 
