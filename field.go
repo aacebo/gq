@@ -34,8 +34,30 @@ func (self Field) Do(ctx context.Context, q string, value any) (any, error) {
 }
 
 func (self Field) Resolve(params Params) (any, error) {
+	if self.Args != nil {
+		if err := self.Args.Validate(params.Value); err != nil {
+			return params.Value, NewError(params.Key, err.Error())
+		}
+	}
+
 	if self.Resolver != nil {
-		return self.Resolver(params)
+		value, err := self.Resolver(params)
+
+		if err != nil {
+			return value, NewError(params.Key, err.Error())
+		}
+
+		params.Value = value
+	}
+
+	if self.Type != nil {
+		value, err := self.Type.Resolve(params)
+
+		if err != nil {
+			return value, NewEmptyError(params.Key).Add(err)
+		}
+
+		params.Value = value
 	}
 
 	return params.Value, nil

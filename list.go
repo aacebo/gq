@@ -2,8 +2,8 @@ package gq
 
 import (
 	"context"
-	"errors"
 	"reflect"
+	"strconv"
 
 	"github.com/aacebo/gq/query"
 )
@@ -35,23 +35,31 @@ func (self List) Resolve(params Params) (any, error) {
 	}
 
 	if value.Kind() != reflect.Array && value.Kind() != reflect.Slice {
-		return nil, errors.New("must be an array/slice")
+		return nil, NewError(params.Key, "must be an array/slice")
 	}
+
+	err := NewEmptyError(params.Key)
 
 	for i := 0; i < value.Len(); i++ {
 		index := value.Index(i)
-		res, err := self.Type.Resolve(Params{
+		res, e := self.Type.Resolve(Params{
 			Query:   params.Query,
 			Parent:  params.Value,
+			Key:     strconv.Itoa(i),
 			Value:   index.Interface(),
 			Context: params.Context,
 		})
 
-		if err != nil {
-			return nil, err
+		if e != nil {
+			err = err.Add(e)
+			continue
 		}
 
 		index.Set(reflect.ValueOf(res))
+	}
+
+	if len(err.Errors) > 0 {
+		return value.Interface(), err
 	}
 
 	return value.Interface(), nil

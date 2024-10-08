@@ -1,7 +1,7 @@
 package gq_test
 
 import (
-	"fmt"
+	"errors"
 	"testing"
 
 	"github.com/aacebo/gq"
@@ -17,8 +17,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						Resolver: func(params gq.Params) (any, error) {
-							parent := params.Parent.(map[string]string)
-							return fmt.Sprintf("%s@gmail.com", parent["name"]), nil
+							return "dev@gmail.com", nil
 						},
 					},
 				},
@@ -60,8 +59,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						Resolver: func(params gq.Params) (any, error) {
-							parent := params.Parent.(map[string]string)
-							email := fmt.Sprintf("%s@gmail.com", parent["name"])
+							email := "dev@gmail.com"
 							return &email, nil
 						},
 					},
@@ -94,8 +92,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						Resolver: func(params gq.Params) (any, error) {
-							parent := params.Parent.(map[string]string)
-							email := fmt.Sprintf("%s@gmail.com", parent["name"])
+							email := "dev@gmail.com"
 							return &email, nil
 						},
 					},
@@ -123,9 +120,10 @@ func Test_Object(t *testing.T) {
 
 	t.Run("struct", func(t *testing.T) {
 		type User struct {
-			ID    string  `json:"id"`
-			Name  string  `json:"name"`
-			Email *string `json:"email,omitempty"`
+			ID        string  `json:"id"`
+			Name      string  `json:"name"`
+			Email     *string `json:"email,omitempty"`
+			CreatedBy *User   `json:"created_by,omitempty"`
 		}
 
 		t.Run("should resolve", func(t *testing.T) {
@@ -136,8 +134,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						Resolver: func(params gq.Params) (any, error) {
-							parent := params.Parent.(User)
-							email := fmt.Sprintf("%s@gmail.com", parent.Name)
+							email := "dev@gmail.com"
 							return &email, nil
 						},
 					},
@@ -184,8 +181,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						Resolver: func(params gq.Params) (any, error) {
-							parent := params.Parent.(User)
-							return fmt.Sprintf("%s@gmail.com", parent.Name), nil
+							return "dev@gmail.com", nil
 						},
 					},
 				},
@@ -217,8 +213,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						Resolver: func(params gq.Params) (any, error) {
-							parent := params.Parent.(User)
-							return fmt.Sprintf("%s@gmail.com", parent.Name), nil
+							return "dev@gmail.com", nil
 						},
 					},
 				},
@@ -239,6 +234,80 @@ func Test_Object(t *testing.T) {
 					`{"key":"User","errors":[{"key":"test","message":"field not found"}]}`,
 					err.Error(),
 				)
+			}
+		})
+
+		t.Run("should fail when field errors", func(t *testing.T) {
+			schema := gq.Object[User]{
+				Name: "User",
+				Fields: gq.Fields{
+					"id":   gq.Field{},
+					"name": gq.Field{},
+					"email": gq.Field{
+						Resolver: func(params gq.Params) (any, error) {
+							return "dev@gmail.com", errors.New("a test error")
+						},
+					},
+				},
+			}
+
+			_, err := schema.Do(nil, "{id,name,email}", User{
+				ID:   "1",
+				Name: "dev",
+			})
+
+			if err == nil {
+				t.FailNow()
+			}
+
+			if err.Error() != `{"key":"User","errors":[{"key":"email","message":"a test error"}]}` {
+				t.Fatalf(
+					"expected `%s`, received `%s`",
+					`{"key":"User","errors":[{"key":"email","message":"a test error"}]}`,
+					err.Error(),
+				)
+			}
+		})
+
+		t.Run("should resolve with nested object schema", func(t *testing.T) {
+			schema := gq.Object[User]{
+				Name: "User",
+				Fields: gq.Fields{
+					"id":   gq.Field{},
+					"name": gq.Field{},
+					"created_by": gq.Field{
+						Type: gq.Object[*User]{
+							Name: "CreatedBy",
+							Fields: gq.Fields{
+								"id":   gq.Field{},
+								"name": gq.Field{},
+							},
+						},
+						Resolver: func(params gq.Params) (any, error) {
+							parent := params.Parent.(User)
+							return &parent, nil
+						},
+					},
+				},
+			}
+
+			res, err := schema.Do(nil, "{id,name,created_by{id,name}}", User{
+				ID:   "1",
+				Name: "dev",
+			})
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			value, ok := res.(User)
+
+			if !ok {
+				t.FailNow()
+			}
+
+			if value.CreatedBy == nil {
+				t.Fatalf("'created_by' should not be nil")
 			}
 		})
 	})

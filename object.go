@@ -26,6 +26,7 @@ func (self Object[T]) Do(ctx context.Context, q string, value any) (any, error) 
 
 	return self.Resolve(Params{
 		Query:   query,
+		Key:     self.Name,
 		Value:   value,
 		Context: ctx,
 	})
@@ -36,8 +37,12 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		return nil, nil
 	}
 
-	object := new(T)
 	err := NewEmptyError(self.Name)
+	object := reflect.Indirect(reflect.New(reflect.TypeFor[T]()))
+
+	if object.Kind() == reflect.Pointer {
+		object = reflect.New(object.Type().Elem())
+	}
 
 	for key, subQuery := range params.Query.Fields {
 		schema, exists := self.Fields[key]
@@ -47,39 +52,17 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 			continue
 		}
 
-		if field, ok := schema.(Field); ok && field.Args != nil {
-			if e := field.Args.Validate(subQuery.Args); e != nil {
-				err = err.Add(e)
-				continue
-			}
-		}
-
 		value, e := schema.Resolve(Params{
 			Query:   subQuery,
-			Parent:  params.Value,
-			Value:   self.getKey(key, params.Value),
+			Parent:  object.Interface(),
+			Key:     key,
+			Value:   self.getKey(key, reflect.ValueOf(params.Value)),
 			Context: params.Context,
 		})
 
 		if e != nil {
 			err = err.Add(e)
 			continue
-		}
-
-		if field, ok := schema.(Field); ok && field.Type != nil {
-			res, e := field.Type.Resolve(Params{
-				Query:   subQuery,
-				Parent:  params.Value,
-				Value:   value,
-				Context: params.Context,
-			})
-
-			if e != nil {
-				err = err.Add(e)
-				continue
-			}
-
-			value = res
 		}
 
 		if e = self.setKey(key, value, object); e != nil {
@@ -91,7 +74,7 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		return nil, err
 	}
 
-	return *object, nil
+	return object.Interface(), nil
 }
 
 func (self Object[T]) String() string {
@@ -99,8 +82,10 @@ func (self Object[T]) String() string {
 	return string(b)
 }
 
-func (self Object[T]) getKey(key string, object any) any {
-	value := reflect.Indirect(reflect.ValueOf(object))
+func (self Object[T]) getKey(key string, value reflect.Value) any {
+	for value.Kind() == reflect.Pointer {
+		value = value.Elem()
+	}
 
 	if !value.IsValid() {
 		return nil
@@ -113,11 +98,17 @@ func (self Object[T]) getKey(key string, object any) any {
 	return self.getStructKey(key, value)
 }
 
-func (self Object[T]) setKey(key string, val any, object any) error {
-	value := reflect.Indirect(reflect.ValueOf(object))
+func (self Object[T]) setKey(key string, val any, value reflect.Value) error {
+	for value.Kind() == reflect.Pointer {
+		value = value.Elem()
+	}
 
 	if !value.IsValid() {
 		return nil
+	}
+
+	if value.Kind() == reflect.Interface || value.Kind() == reflect.Pointer {
+		value = value.Elem()
 	}
 
 	if value.Kind() == reflect.Map {
@@ -187,7 +178,7 @@ func (self Object[T]) setStructKey(key string, val any, object reflect.Value) er
 	name, exists := self.getStructFieldByName(key, object)
 
 	if !exists {
-		return NewError(key, "field not found")
+		return NewError(key, "struct field not found")
 	}
 
 	value := object.FieldByName(name)
@@ -215,7 +206,7 @@ func (self Object[T]) getStructFieldByName(name string, object reflect.Value) (s
 		return "", false
 	}
 
-	for i := 0; i < object.NumField(); i++ {
+	for i := 0; i < object.Type().NumField(); i++ {
 		field := object.Type().Field(i)
 		tag := field.Tag.Get("json")
 
