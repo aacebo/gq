@@ -179,6 +179,44 @@ func Test_Object(t *testing.T) {
 			}
 		})
 
+		t.Run("should resolve null field", func(t *testing.T) {
+			schema := gq.Object[User]{
+				Name: "User",
+				Fields: gq.Fields{
+					"id":    gq.Field{},
+					"name":  gq.Field{},
+					"email": gq.Field{},
+				},
+			}
+
+			res, err := schema.Do(nil, "{id,name,email}", User{
+				ID:   "1",
+				Name: "dev",
+			})
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			value, ok := res.(User)
+
+			if !ok {
+				t.FailNow()
+			}
+
+			if value.ID != "1" {
+				t.Fatalf("expected `%s`, received `%s`", "1", value.ID)
+			}
+
+			if value.Name != "dev" {
+				t.Fatalf("expected `%s`, received `%s`", "dev", value.Name)
+			}
+
+			if value.Email != nil {
+				t.Fatalf("expected nil, received `%s`", "dev@gmail.com")
+			}
+		})
+
 		t.Run("should fail when wrong field type", func(t *testing.T) {
 			schema := gq.Object[User]{
 				Name: "User",

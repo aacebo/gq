@@ -161,7 +161,7 @@ func (self Object[T]) getStructKey(key string, object reflect.Value) any {
 		return nil
 	}
 
-	value := reflect.Indirect(object.FieldByName(name))
+	value := object.FieldByName(name)
 
 	if value.Kind() == reflect.Interface {
 		value = value.Elem()
@@ -182,6 +182,14 @@ func (self Object[T]) setStructKey(key string, val any, object reflect.Value) er
 	}
 
 	value := object.FieldByName(name)
+
+	if !reflect.ValueOf(val).IsValid() {
+		if value.CanSet() {
+			value.Set(reflect.New(value.Type()).Elem())
+		}
+
+		return nil
+	}
 
 	if value.Type() != reflect.ValueOf(val).Type() {
 		return NewError(
