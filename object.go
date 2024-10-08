@@ -43,7 +43,8 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		schema, exists := self.Fields[key]
 
 		if !exists {
-			return nil, fmt.Errorf("field `%s` not found", key)
+			err = err.Add(fmt.Errorf("field `%s` not found", key))
+			continue
 		}
 
 		if field, ok := schema.(Field); ok && field.Args != nil {
