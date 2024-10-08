@@ -4,10 +4,9 @@ import (
 	"encoding/json"
 )
 
-// http://localhost:8080/product?query={product(id:1){name,info,price}}
 type Query struct {
-	Args   QueryArgs        `json:"args"`
-	Fields map[string]Query `json:"fields"`
+	Args   QueryArgs        `json:"args,omitempty"`
+	Fields map[string]Query `json:"fields,omitempty"`
 }
 
 func (self Query) String() string {
