@@ -41,7 +41,7 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		schema, exists := self.Fields[key]
 
 		if !exists {
-			return nil, fmt.Errorf("field %s not found", key)
+			return nil, fmt.Errorf("field `%s` not found", key)
 		}
 
 		if field, ok := schema.(Field); ok && field.Args != nil {
@@ -132,8 +132,21 @@ func (self Object[T]) getMapKey(key string, object reflect.Value) any {
 }
 
 func (self Object[T]) setMapKey(key string, val any, object reflect.Value) error {
+	value := reflect.ValueOf(val)
+
 	if object.CanSet() && object.IsNil() {
 		object.Set(reflect.MakeMapWithSize(reflect.TypeFor[T](), 0))
+	}
+
+	if object.Type().Elem() != value.Type() {
+		return NewError(
+			key,
+			fmt.Sprintf(
+				"expected type `%s`, received `%s`",
+				object.Type().Elem().String(),
+				value.Type().String(),
+			),
+		)
 	}
 
 	object.SetMapIndex(reflect.ValueOf(key), reflect.ValueOf(val))
@@ -168,6 +181,17 @@ func (self Object[T]) setStructKey(key string, val any, object reflect.Value) er
 	}
 
 	value := object.FieldByName(name)
+
+	if value.Type() != reflect.ValueOf(val).Type() {
+		return NewError(
+			key,
+			fmt.Sprintf(
+				"expected type `%s`, received `%s`",
+				value.Type().String(),
+				reflect.ValueOf(val).Type().String(),
+			),
+		)
+	}
 
 	if value.CanSet() {
 		value.Set(reflect.ValueOf(val))
