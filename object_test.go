@@ -76,6 +76,14 @@ func Test_Object(t *testing.T) {
 			if err == nil {
 				t.FailNow()
 			}
+
+			if err.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}` {
+				t.Fatalf(
+					"expected `%s`, received `%s`",
+					`{"key":"User","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}`,
+					err.Error(),
+				)
+			}
 		})
 
 		t.Run("should fail when query field not found", func(t *testing.T) {
@@ -101,6 +109,14 @@ func Test_Object(t *testing.T) {
 
 			if err == nil {
 				t.FailNow()
+			}
+
+			if err.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
+				t.Fatalf(
+					"expected `%s`, received `%s`",
+					`{"key":"User","errors":[{"key":"test","message":"field not found"}]}`,
+					err.Error(),
+				)
 			}
 		})
 	})
@@ -183,6 +199,14 @@ func Test_Object(t *testing.T) {
 			if err == nil {
 				t.FailNow()
 			}
+
+			if err.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}` {
+				t.Fatalf(
+					"expected `%s`, received `%s`",
+					`{"key":"User","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}`,
+					err.Error(),
+				)
+			}
 		})
 
 		t.Run("should fail when query field not found", func(t *testing.T) {
@@ -207,6 +231,14 @@ func Test_Object(t *testing.T) {
 
 			if err == nil {
 				t.FailNow()
+			}
+
+			if err.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
+				t.Fatalf(
+					"expected `%s`, received `%s`",
+					`{"key":"User","errors":[{"key":"test","message":"field not found"}]}`,
+					err.Error(),
+				)
 			}
 		})
 	})

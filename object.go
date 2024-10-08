@@ -43,7 +43,7 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		schema, exists := self.Fields[key]
 
 		if !exists {
-			err = err.Add(fmt.Errorf("field `%s` not found", key))
+			err = err.Add(NewError(key, "field not found"))
 			continue
 		}
 
@@ -152,7 +152,7 @@ func (self Object[T]) setMapKey(key string, val any, object reflect.Value) error
 		return NewError(
 			key,
 			fmt.Sprintf(
-				"expected type `%s`, received `%s`",
+				"expected type '%s', received '%s'",
 				object.Type().Elem().String(),
 				value.Type().String(),
 			),
@@ -196,7 +196,7 @@ func (self Object[T]) setStructKey(key string, val any, object reflect.Value) er
 		return NewError(
 			key,
 			fmt.Sprintf(
-				"expected type `%s`, received `%s`",
+				"expected type '%s', received '%s'",
 				value.Type().String(),
 				reflect.ValueOf(val).Type().String(),
 			),
