@@ -119,10 +119,16 @@ func Test_Object(t *testing.T) {
 	})
 
 	t.Run("struct", func(t *testing.T) {
+		type Org struct {
+			ID   string `json:"id"`
+			Name string `json:"name"`
+		}
+
 		type User struct {
 			ID        string  `json:"id"`
 			Name      string  `json:"name"`
 			Email     *string `json:"email,omitempty"`
+			Orgs      []Org   `json:"orgs,omitempty"`
 			CreatedBy *User   `json:"created_by,omitempty"`
 		}
 
@@ -308,6 +314,72 @@ func Test_Object(t *testing.T) {
 
 			if value.CreatedBy == nil {
 				t.Fatalf("'created_by' should not be nil")
+			}
+		})
+
+		t.Run("should resolve with nested list schema", func(t *testing.T) {
+			schema := gq.Object[User]{
+				Name: "User",
+				Fields: gq.Fields{
+					"id":   gq.Field{},
+					"name": gq.Field{},
+					"orgs": gq.Field{
+						Type: gq.List{
+							Type: gq.Object[Org]{
+								Name: "Org",
+								Fields: gq.Fields{
+									"id":   gq.Field{},
+									"name": gq.Field{},
+								},
+							},
+						},
+						Resolver: func(params gq.Params) (any, error) {
+							return []Org{
+								{ID: "1", Name: "one"},
+								{ID: "2", Name: "two"},
+							}, nil
+						},
+					},
+				},
+			}
+
+			res, err := schema.Do(nil, "{id,name,orgs{id,name}}", User{
+				ID:   "1",
+				Name: "dev",
+			})
+
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			value, ok := res.(User)
+
+			if !ok {
+				t.FailNow()
+			}
+
+			if value.Orgs == nil {
+				t.Fatalf("'orgs' should not be nil")
+			}
+
+			if len(value.Orgs) != 2 {
+				t.Fatalf("should have 2 orgs")
+			}
+
+			if value.Orgs[0].ID != "1" {
+				t.Fatalf("first org should have `id` = `1`")
+			}
+
+			if value.Orgs[0].Name != "one" {
+				t.Fatalf("first org should have `name` = `one`")
+			}
+
+			if value.Orgs[1].ID != "2" {
+				t.Fatalf("second org should have `id` = `2`")
+			}
+
+			if value.Orgs[1].Name != "two" {
+				t.Fatalf("second org should have `name` = `two`")
 			}
 		})
 	})
