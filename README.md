@@ -89,3 +89,6 @@ if err != nil {
 }
 ```
 
+# Related
+
+- [Schema Validation](https://github.com/aacebo/owl)
