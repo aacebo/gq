@@ -9,8 +9,10 @@ import (
 )
 
 type List struct {
-	Type Schema       `json:"type,omitempty"`
-	Use  []Middleware `json:"-"`
+	Name        string       `json:"name"`
+	Description string       `json:"description,omitempty"`
+	Type        Schema       `json:"type,omitempty"`
+	Use         []Middleware `json:"-"`
 }
 
 func (self List) Do(params DoParams) Result {
@@ -23,6 +25,7 @@ func (self List) Do(params DoParams) Result {
 
 	return self.Resolve(ResolveParams{
 		Query:   query,
+		Key:     self.Name,
 		Value:   params.Value,
 		Context: params.Context,
 	})
