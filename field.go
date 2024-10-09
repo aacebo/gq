@@ -15,6 +15,7 @@ type Field struct {
 	Type        Schema                           `json:"type,omitempty"`
 	Description string                           `json:"description,omitempty"`
 	Args        Args                             `json:"args,omitempty"`
+	DependsOn   []string                         `json:"depends_on,omitempty"`
 	Resolver    func(params Params) (any, error) `json:"-"`
 }
 

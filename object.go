@@ -44,16 +44,35 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		object = reflect.New(object.Type().Elem())
 	}
 
-	for key, subQuery := range params.Query.Fields {
+	visited := map[string]bool{}
+
+	var resolve func(key string) error
+	resolve = func(key string) error {
+		if visited[key] {
+			return nil
+		}
+
+		query := params.Query.Fields[key]
 		schema, exists := self.Fields[key]
 
 		if !exists {
-			err = err.Add(NewError(key, "field not found"))
-			continue
+			return NewError(key, "field not found")
+		}
+
+		if field, ok := schema.(Field); ok {
+			if field.DependsOn != nil {
+				for _, dependsOn := range field.DependsOn {
+					e := resolve(dependsOn)
+
+					if e != nil {
+						return e
+					}
+				}
+			}
 		}
 
 		value, e := schema.Resolve(Params{
-			Query:   subQuery,
+			Query:   query,
 			Parent:  object.Interface(),
 			Key:     key,
 			Value:   self.getKey(key, reflect.ValueOf(params.Value)),
@@ -61,11 +80,21 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 		})
 
 		if e != nil {
-			err = err.Add(e)
-			continue
+			return e
 		}
 
 		if e = self.setKey(key, value, object); e != nil {
+			return e
+		}
+
+		visited[key] = true
+		return nil
+	}
+
+	for key := range params.Query.Fields {
+		e := resolve(key)
+
+		if e != nil {
 			err = err.Add(e)
 		}
 	}

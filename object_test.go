@@ -2,6 +2,7 @@ package gq_test
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/aacebo/gq"
@@ -139,8 +140,10 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
+						DependsOn: []string{"name"},
 						Resolver: func(params gq.Params) (any, error) {
-							email := "dev@gmail.com"
+							parent := params.Parent.(User)
+							email := fmt.Sprintf("%s@gmail.com", parent.Name)
 							return &email, nil
 						},
 					},
@@ -289,7 +292,8 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						Resolver: func(params gq.Params) (any, error) {
-							return "dev@gmail.com", errors.New("a test error")
+							parent := params.Parent.(User)
+							return fmt.Sprintf("%s@gmail.com", parent.Name), errors.New("a test error")
 						},
 					},
 				},
