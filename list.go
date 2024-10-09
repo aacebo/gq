@@ -1,7 +1,6 @@
 package gq
 
 import (
-	"context"
 	"reflect"
 	"strconv"
 
@@ -13,45 +12,48 @@ type List struct {
 	Use  []Middleware `json:"-"`
 }
 
-func (self List) Do(ctx context.Context, q string, value any) (any, error) {
-	parser := query.Parser([]byte(q))
+func (self List) Do(params DoParams) Result {
+	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
 
 	if err != nil {
-		return nil, err
+		return Result{Error: err}
 	}
 
-	return self.Resolve(Params{
+	return self.Resolve(ResolveParams{
 		Query:   query,
-		Value:   value,
-		Context: ctx,
+		Value:   params.Value,
+		Context: params.Context,
 	})
 }
 
-func (self List) Resolve(params Params) (any, error) {
+func (self List) Resolve(params ResolveParams) Result {
 	value := reflect.Indirect(reflect.ValueOf(params.Value))
 
 	if !value.IsValid() {
-		return nil, nil
+		return Result{}
 	}
 
 	if self.Use != nil {
 		for _, use := range self.Use {
 			if err := use(params); err != nil {
-				return nil, err
+				return Result{
+					Data:  params.Value,
+					Error: err,
+				}
 			}
 		}
 	}
 
 	if value.Kind() != reflect.Array && value.Kind() != reflect.Slice {
-		return nil, NewError(params.Key, "must be an array/slice")
+		return Result{Error: NewError(params.Key, "must be an array/slice")}
 	}
 
 	err := NewEmptyError(params.Key)
 
 	for i := 0; i < value.Len(); i++ {
 		index := value.Index(i)
-		res, e := self.Type.Resolve(Params{
+		res := self.Type.Resolve(ResolveParams{
 			Query:   params.Query,
 			Parent:  params.Value,
 			Key:     strconv.Itoa(i),
@@ -59,17 +61,20 @@ func (self List) Resolve(params Params) (any, error) {
 			Context: params.Context,
 		})
 
-		if e != nil {
-			err = err.Add(e)
+		if res.Error != nil {
+			err = err.Add(res.Error)
 			continue
 		}
 
-		index.Set(reflect.ValueOf(res))
+		index.Set(reflect.ValueOf(res.Data))
 	}
 
 	if len(err.Errors) > 0 {
-		return value.Interface(), err
+		return Result{
+			Data:  value.Interface(),
+			Error: err,
+		}
 	}
 
-	return value.Interface(), nil
+	return Result{Data: value.Interface()}
 }

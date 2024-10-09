@@ -21,7 +21,7 @@ func Test_List(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
@@ -29,16 +29,19 @@ func Test_List(t *testing.T) {
 			},
 		}
 
-		res, err := schema.Do(nil, "{id,name,email}", []map[string]string{{
-			"id":   "1",
-			"name": "dev",
-		}})
+		res := schema.Do(gq.DoParams{
+			Query: "{id,name,email}",
+			Value: []map[string]string{{
+				"id":   "1",
+				"name": "dev",
+			}},
+		})
 
-		if err != nil {
-			t.Fatal(err)
+		if res.Error != nil {
+			t.Fatal(res.Error)
 		}
 
-		value, ok := res.([]map[string]string)
+		value, ok := res.Data.([]map[string]string)
 
 		if !ok {
 			t.FailNow()
@@ -69,7 +72,7 @@ func Test_List(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							email := "dev@gmail.com"
 							return &email, nil
 						},
@@ -78,16 +81,19 @@ func Test_List(t *testing.T) {
 			},
 		}
 
-		res, err := schema.Do(nil, "{id,name,email}", []User{{
-			ID:   "1",
-			Name: "dev",
-		}})
+		res := schema.Do(gq.DoParams{
+			Query: "{id,name,email}",
+			Value: []User{{
+				ID:   "1",
+				Name: "dev",
+			}},
+		})
 
-		if err != nil {
-			t.Fatal(err)
+		if res.Error != nil {
+			t.Fatal(res.Error)
 		}
 
-		value, ok := res.([]User)
+		value, ok := res.Data.([]User)
 
 		if !ok {
 			t.FailNow()

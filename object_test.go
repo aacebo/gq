@@ -17,23 +17,26 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
 				},
 			}
 
-			res, err := schema.Do(nil, "{id,name,email}", map[string]string{
-				"id":   "1",
-				"name": "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,email}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err != nil {
-				t.Fatal(err)
+			if res.Error != nil {
+				t.Fatal(res.Error)
 			}
 
-			value, ok := res.(map[string]string)
+			value, ok := res.Data.(map[string]string)
 
 			if !ok {
 				t.FailNow()
@@ -59,7 +62,7 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							email := "dev@gmail.com"
 							return &email, nil
 						},
@@ -67,20 +70,23 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			_, err := schema.Do(nil, "{id,name,email}", map[string]string{
-				"id":   "1",
-				"name": "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,email}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err == nil {
+			if res.Error == nil {
 				t.FailNow()
 			}
 
-			if err.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
 					`{"key":"User","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}`,
-					err.Error(),
+					res.Error.Error(),
 				)
 			}
 		})
@@ -92,7 +98,7 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							email := "dev@gmail.com"
 							return &email, nil
 						},
@@ -100,20 +106,23 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			_, err := schema.Do(nil, "{id,name,test}", map[string]string{
-				"id":   "1",
-				"name": "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,test}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err == nil {
+			if res.Error == nil {
 				t.FailNow()
 			}
 
-			if err.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
 					`{"key":"User","errors":[{"key":"test","message":"field not found"}]}`,
-					err.Error(),
+					res.Error.Error(),
 				)
 			}
 		})
@@ -141,7 +150,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						DependsOn: []string{"name"},
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							parent := params.Parent.(User)
 							email := fmt.Sprintf("%s@gmail.com", parent.Name)
 							return &email, nil
@@ -150,16 +159,19 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res, err := schema.Do(nil, "{id,name,email}", User{
-				ID:   "1",
-				Name: "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,email}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err != nil {
-				t.Fatal(err)
+			if res.Error != nil {
+				t.Fatal(res.Error)
 			}
 
-			value, ok := res.(User)
+			value, ok := res.Data.(User)
 
 			if !ok {
 				t.FailNow()
@@ -192,16 +204,19 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res, err := schema.Do(nil, "{id,name,email}", User{
-				ID:   "1",
-				Name: "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,email}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err != nil {
-				t.Fatal(err)
+			if res.Error != nil {
+				t.Fatal(res.Error)
 			}
 
-			value, ok := res.(User)
+			value, ok := res.Data.(User)
 
 			if !ok {
 				t.FailNow()
@@ -227,27 +242,30 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
 				},
 			}
 
-			_, err := schema.Do(nil, "{id,name,email}", User{
-				ID:   "1",
-				Name: "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,email}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err == nil {
+			if res.Error == nil {
 				t.FailNow()
 			}
 
-			if err.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
 					`{"key":"User","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}`,
-					err.Error(),
+					res.Error.Error(),
 				)
 			}
 		})
@@ -259,27 +277,30 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
 				},
 			}
 
-			_, err := schema.Do(nil, "{id,name,test}", User{
-				ID:   "1",
-				Name: "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,test}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err == nil {
+			if res.Error == nil {
 				t.FailNow()
 			}
 
-			if err.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
 					`{"key":"User","errors":[{"key":"test","message":"field not found"}]}`,
-					err.Error(),
+					res.Error.Error(),
 				)
 			}
 		})
@@ -291,7 +312,7 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							parent := params.Parent.(User)
 							return fmt.Sprintf("%s@gmail.com", parent.Name), errors.New("a test error")
 						},
@@ -299,20 +320,23 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			_, err := schema.Do(nil, "{id,name,email}", User{
-				ID:   "1",
-				Name: "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,email}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err == nil {
+			if res.Error == nil {
 				t.FailNow()
 			}
 
-			if err.Error() != `{"key":"User","errors":[{"key":"email","message":"a test error"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"email","message":"a test error"}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
 					`{"key":"User","errors":[{"key":"email","message":"a test error"}]}`,
-					err.Error(),
+					res.Error.Error(),
 				)
 			}
 		})
@@ -331,7 +355,7 @@ func Test_Object(t *testing.T) {
 								"name": gq.Field{},
 							},
 						},
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							parent := params.Parent.(User)
 							return &parent, nil
 						},
@@ -339,16 +363,19 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res, err := schema.Do(nil, "{id,name,created_by{id,name}}", User{
-				ID:   "1",
-				Name: "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,created_by{id,name}}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err != nil {
-				t.Fatal(err)
+			if res.Error != nil {
+				t.Fatal(res.Error)
 			}
 
-			value, ok := res.(User)
+			value, ok := res.Data.(User)
 
 			if !ok {
 				t.FailNow()
@@ -375,7 +402,7 @@ func Test_Object(t *testing.T) {
 								},
 							},
 						},
-						Resolver: func(params gq.Params) (any, error) {
+						Resolver: func(params gq.ResolveParams) (any, error) {
 							return []Org{
 								{ID: "1", Name: "one"},
 								{ID: "2", Name: "two"},
@@ -385,16 +412,19 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res, err := schema.Do(nil, "{id,name,orgs{id,name}}", User{
-				ID:   "1",
-				Name: "dev",
+			res := schema.Do(gq.DoParams{
+				Query: "{id,name,orgs{id,name}}",
+				Value: map[string]string{
+					"id":   "1",
+					"name": "dev",
+				},
 			})
 
-			if err != nil {
-				t.Fatal(err)
+			if res.Error != nil {
+				t.Fatal(res.Error)
 			}
 
-			value, ok := res.(User)
+			value, ok := res.Data.(User)
 
 			if !ok {
 				t.FailNow()

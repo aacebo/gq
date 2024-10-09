@@ -5,20 +5,31 @@ import (
 	"encoding/json"
 )
 
-type Params struct {
-	Query   Query           `json:"query"`
-	Parent  any             `json:"parent,omitempty"`
-	Key     string          `json:"key"`
+type DoParams struct {
+	Query   string          `json:"query"`
 	Value   any             `json:"value,omitempty"`
-	Context context.Context `json:"context"`
+	Context context.Context `json:"context,omitempty"`
 }
 
-func (self Params) String() string {
+func (self DoParams) String() string {
+	b, _ := json.Marshal(self)
+	return string(b)
+}
+
+type ResolveParams struct {
+	Query   Query           `json:"query"`
+	Parent  any             `json:"parent,omitempty"`
+	Key     string          `json:"key,omitempty"`
+	Value   any             `json:"value,omitempty"`
+	Context context.Context `json:"context,omitempty"`
+}
+
+func (self ResolveParams) String() string {
 	b, _ := json.Marshal(self)
 	return string(b)
 }
 
 type Schema interface {
-	Do(ctx context.Context, q string, value any) (any, error)
-	Resolve(params Params) (any, error)
+	Do(params DoParams) Result
+	Resolve(params ResolveParams) Result
 }

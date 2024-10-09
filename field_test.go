@@ -10,18 +10,21 @@ import (
 func Test_Field(t *testing.T) {
 	t.Run("should resolve", func(t *testing.T) {
 		schema := gq.Field{
-			Resolver: func(params gq.Params) (any, error) {
+			Resolver: func(params gq.ResolveParams) (any, error) {
 				return 1, nil
 			},
 		}
 
-		res, err := schema.Do(nil, "{}", 2)
+		res := schema.Do(gq.DoParams{
+			Query: "{}",
+			Value: 2,
+		})
 
-		if err != nil {
-			t.Error(err)
+		if res.Error != nil {
+			t.Error(res.Error)
 		}
 
-		value := reflect.ValueOf(res)
+		value := reflect.ValueOf(res.Data)
 
 		if value.Kind() != reflect.Int {
 			t.FailNow()
@@ -34,13 +37,16 @@ func Test_Field(t *testing.T) {
 
 	t.Run("should resolve using default value", func(t *testing.T) {
 		schema := gq.Field{}
-		res, err := schema.Do(nil, "{}", 1)
+		res := schema.Do(gq.DoParams{
+			Query: "{}",
+			Value: 1,
+		})
 
-		if err != nil {
-			t.Error(err)
+		if res.Error != nil {
+			t.Error(res.Error)
 		}
 
-		value := reflect.ValueOf(res)
+		value := reflect.ValueOf(res.Data)
 
 		if value.Kind() != reflect.Int {
 			t.FailNow()

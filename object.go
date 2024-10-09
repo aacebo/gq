@@ -1,7 +1,6 @@
 package gq
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"reflect"
@@ -17,31 +16,31 @@ type Object[T any] struct {
 	Fields      Fields       `json:"fields,omitempty"`
 }
 
-func (self Object[T]) Do(ctx context.Context, q string, value any) (any, error) {
-	parser := query.Parser([]byte(q))
+func (self Object[T]) Do(params DoParams) Result {
+	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
 
 	if err != nil {
-		return nil, err
+		return Result{Error: err}
 	}
 
-	return self.Resolve(Params{
+	return self.Resolve(ResolveParams{
 		Query:   query,
 		Key:     self.Name,
-		Value:   value,
-		Context: ctx,
+		Value:   params.Value,
+		Context: params.Context,
 	})
 }
 
-func (self Object[T]) Resolve(params Params) (any, error) {
+func (self Object[T]) Resolve(params ResolveParams) Result {
 	if params.Value == nil || self.Fields == nil {
-		return nil, nil
+		return Result{}
 	}
 
 	if self.Use != nil {
 		for _, use := range self.Use {
 			if err := use(params); err != nil {
-				return nil, err
+				return Result{Error: err}
 			}
 		}
 	}
@@ -80,7 +79,7 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 			}
 		}
 
-		value, e := schema.Resolve(Params{
+		res := schema.Resolve(ResolveParams{
 			Query:   query,
 			Parent:  object.Interface(),
 			Key:     key,
@@ -88,11 +87,11 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 			Context: params.Context,
 		})
 
-		if e != nil {
-			return e
+		if res.Error != nil {
+			return res.Error
 		}
 
-		if e = self.setKey(key, value, object); e != nil {
+		if e := self.setKey(key, res.Data, object); e != nil {
 			return e
 		}
 
@@ -109,10 +108,10 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 	}
 
 	if len(err.Errors) > 0 {
-		return nil, err
+		return Result{Error: err}
 	}
 
-	return object.Interface(), nil
+	return Result{Data: object.Interface()}
 }
 
 func (self Object[T]) Extend(schema Object[T]) Object[T] {

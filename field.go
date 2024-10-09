@@ -1,7 +1,6 @@
 package gq
 
 import (
-	"context"
 	"encoding/json"
 
 	"github.com/aacebo/gq/query"
@@ -12,41 +11,47 @@ type Args interface {
 }
 
 type Field struct {
-	Type        Schema                           `json:"type,omitempty"`
-	Description string                           `json:"description,omitempty"`
-	Args        Args                             `json:"args,omitempty"`
-	DependsOn   []string                         `json:"depends_on,omitempty"`
-	Use         []Middleware                     `json:"-"`
-	Resolver    func(params Params) (any, error) `json:"-"`
+	Type        Schema                                  `json:"type,omitempty"`
+	Description string                                  `json:"description,omitempty"`
+	Args        Args                                    `json:"args,omitempty"`
+	DependsOn   []string                                `json:"depends_on,omitempty"`
+	Use         []Middleware                            `json:"-"`
+	Resolver    func(params ResolveParams) (any, error) `json:"-"`
 }
 
-func (self Field) Do(ctx context.Context, q string, value any) (any, error) {
-	parser := query.Parser([]byte(q))
+func (self Field) Do(params DoParams) Result {
+	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
 
 	if err != nil {
-		return nil, err
+		return Result{Error: err}
 	}
 
-	return self.Resolve(Params{
+	return self.Resolve(ResolveParams{
 		Query:   query,
-		Value:   value,
-		Context: ctx,
+		Value:   params.Value,
+		Context: params.Context,
 	})
 }
 
-func (self Field) Resolve(params Params) (any, error) {
+func (self Field) Resolve(params ResolveParams) Result {
 	if self.Use != nil {
 		for _, use := range self.Use {
 			if err := use(params); err != nil {
-				return params.Value, err
+				return Result{
+					Data:  params.Value,
+					Error: err,
+				}
 			}
 		}
 	}
 
 	if self.Args != nil {
 		if err := self.Args.Validate(params.Value); err != nil {
-			return params.Value, NewError(params.Key, err.Error())
+			return Result{
+				Data:  params.Value,
+				Error: NewError(params.Key, err.Error()),
+			}
 		}
 	}
 
@@ -54,23 +59,29 @@ func (self Field) Resolve(params Params) (any, error) {
 		value, err := self.Resolver(params)
 
 		if err != nil {
-			return value, NewError(params.Key, err.Error())
+			return Result{
+				Data:  value,
+				Error: NewError(params.Key, err.Error()),
+			}
 		}
 
 		params.Value = value
 	}
 
 	if self.Type != nil {
-		value, err := self.Type.Resolve(params)
+		res := self.Type.Resolve(params)
 
-		if err != nil {
-			return value, NewEmptyError(params.Key).Add(err)
+		if res.Error != nil {
+			return Result{
+				Data:  res.Data,
+				Error: NewEmptyError(params.Key).Add(res.Error),
+			}
 		}
 
-		params.Value = value
+		params.Value = res.Data
 	}
 
-	return params.Value, nil
+	return Result{Data: params.Value}
 }
 
 func (self Field) String() string {
