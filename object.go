@@ -33,7 +33,7 @@ func (self Object[T]) Do(ctx context.Context, q string, value any) (any, error) 
 }
 
 func (self Object[T]) Resolve(params Params) (any, error) {
-	if self.Fields == nil {
+	if params.Value == nil || self.Fields == nil {
 		return nil, nil
 	}
 
