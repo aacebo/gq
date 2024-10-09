@@ -143,9 +143,24 @@ func (self Object[T]) Extend(schema Object[T]) Object[T] {
 		}
 	}
 
+	middleware := []Middleware{}
+
+	if self.Use != nil {
+		for _, use := range self.Use {
+			middleware = append(middleware, use)
+		}
+	}
+
+	if schema.Use != nil {
+		for _, use := range schema.Use {
+			middleware = append(middleware, use)
+		}
+	}
+
 	return Object[T]{
 		Name:        schema.Name,
 		Description: schema.Description,
+		Use:         middleware,
 		Fields:      fields,
 	}
 }
