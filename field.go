@@ -82,6 +82,10 @@ func (self Field) Resolve(params ResolveParams) Result {
 			return res
 		}
 
+		if result.Meta != nil {
+			res.Meta = res.Meta.Merge(result.Meta)
+		}
+
 		params.Value = result.Data
 	}
 
