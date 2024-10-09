@@ -54,7 +54,7 @@ schema := gq.Object[User]{
 					}
 				}
 			},
-			Resolver: func(params gq.Params) (any, error) {
+			Resolver: func(params gq.ResolveParams) (any, error) {
 				user := params.Parent.(User)
 				posts := // ... get some posts ...
 				return posts, nil
@@ -72,20 +72,19 @@ q := `{
 	posts {id,body}
 }`
 
-res, err := schema.Do(
-	nil,
-	q,
-	User{
+res := schema.Do(gq.DoParams{
+	Query: q,
+	Value: User{
 		ID: "1",
 		Name: "test",
 		Email: "test@test.com",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	},
-)
+})
 
-if err != nil {
-	panic(err)
+if res.Error != nil {
+	panic(res.Error)
 }
 ```
 
