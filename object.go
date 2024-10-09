@@ -11,9 +11,10 @@ import (
 )
 
 type Object[T any] struct {
-	Name        string `json:"name"` // must be unique
-	Description string `json:"description,omitempty"`
-	Fields      Fields `json:"fields,omitempty"`
+	Name        string       `json:"name"` // must be unique
+	Description string       `json:"description,omitempty"`
+	Use         []Middleware `json:"-"`
+	Fields      Fields       `json:"fields,omitempty"`
 }
 
 func (self Object[T]) Do(ctx context.Context, q string, value any) (any, error) {
@@ -35,6 +36,14 @@ func (self Object[T]) Do(ctx context.Context, q string, value any) (any, error) 
 func (self Object[T]) Resolve(params Params) (any, error) {
 	if params.Value == nil || self.Fields == nil {
 		return nil, nil
+	}
+
+	if self.Use != nil {
+		for _, use := range self.Use {
+			if err := use(params); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	err := NewEmptyError(self.Name)

@@ -9,7 +9,8 @@ import (
 )
 
 type List struct {
-	Type Schema `json:"type,omitempty"`
+	Type Schema       `json:"type,omitempty"`
+	Use  []Middleware `json:"-"`
 }
 
 func (self List) Do(ctx context.Context, q string, value any) (any, error) {
@@ -31,7 +32,15 @@ func (self List) Resolve(params Params) (any, error) {
 	value := reflect.Indirect(reflect.ValueOf(params.Value))
 
 	if !value.IsValid() {
-		return []any{}, nil
+		return nil, nil
+	}
+
+	if self.Use != nil {
+		for _, use := range self.Use {
+			if err := use(params); err != nil {
+				return nil, err
+			}
+		}
 	}
 
 	if value.Kind() != reflect.Array && value.Kind() != reflect.Slice {

@@ -16,6 +16,7 @@ type Field struct {
 	Description string                           `json:"description,omitempty"`
 	Args        Args                             `json:"args,omitempty"`
 	DependsOn   []string                         `json:"depends_on,omitempty"`
+	Use         []Middleware                     `json:"-"`
 	Resolver    func(params Params) (any, error) `json:"-"`
 }
 
@@ -35,6 +36,14 @@ func (self Field) Do(ctx context.Context, q string, value any) (any, error) {
 }
 
 func (self Field) Resolve(params Params) (any, error) {
+	if self.Use != nil {
+		for _, use := range self.Use {
+			if err := use(params); err != nil {
+				return params.Value, err
+			}
+		}
+	}
+
 	if self.Args != nil {
 		if err := self.Args.Validate(params.Value); err != nil {
 			return params.Value, NewError(params.Key, err.Error())
