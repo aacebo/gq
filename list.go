@@ -3,6 +3,7 @@ package gq
 import (
 	"reflect"
 	"strconv"
+	"time"
 
 	"github.com/aacebo/gq/query"
 )
@@ -29,52 +30,62 @@ func (self List) Do(params DoParams) Result {
 
 func (self List) Resolve(params ResolveParams) Result {
 	value := reflect.Indirect(reflect.ValueOf(params.Value))
+	now := time.Now()
+	res := Result{Meta: Meta{}}
+
+	defer func() {
+		res.Meta["$elapse"] = time.Now().Sub(now).Milliseconds()
+	}()
 
 	if !value.IsValid() {
-		return Result{}
+		return res
 	}
 
 	if self.Use != nil {
 		for _, use := range self.Use {
-			if err := use(params); err != nil {
-				return Result{
-					Data:  params.Value,
-					Error: err,
-				}
+			result := use(params)
+
+			if result.Error != nil {
+				res.Error = NewError(params.Key, result.Error.Error())
+				return res
 			}
+
+			res = res.Merge(result)
 		}
 	}
 
 	if value.Kind() != reflect.Array && value.Kind() != reflect.Slice {
-		return Result{Error: NewError(params.Key, "must be an array/slice")}
+		res.Error = NewError(params.Key, "must be an array/slice")
+		return res
 	}
 
 	err := NewEmptyError(params.Key)
 
 	for i := 0; i < value.Len(); i++ {
+		key := strconv.Itoa(i)
 		index := value.Index(i)
-		res := self.Type.Resolve(ResolveParams{
+		result := self.Type.Resolve(ResolveParams{
 			Query:   params.Query,
 			Parent:  params.Value,
-			Key:     strconv.Itoa(i),
+			Key:     key,
 			Value:   index.Interface(),
 			Context: params.Context,
 		})
 
-		if res.Error != nil {
-			err = err.Add(res.Error)
+		if result.Error != nil {
+			err = err.Add(result.Error)
 			continue
 		}
 
-		index.Set(reflect.ValueOf(res.Data))
+		index.Set(reflect.ValueOf(result.Data))
+		res.Meta[key] = result.Meta
 	}
 
 	if len(err.Errors) > 0 {
-		return Result{
-			Data:  value.Interface(),
-			Error: err,
-		}
+		res.Error = err
+		return res
 	}
 
-	return Result{Data: value.Interface()}
+	res.Data = value.Interface()
+	return res
 }

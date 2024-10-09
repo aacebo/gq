@@ -2,6 +2,7 @@ package gq
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/aacebo/gq/query"
 )
@@ -35,23 +36,30 @@ func (self Field) Do(params DoParams) Result {
 }
 
 func (self Field) Resolve(params ResolveParams) Result {
+	now := time.Now()
+	res := Result{Meta: Meta{}}
+
+	defer func() {
+		res.Meta["$elapse"] = time.Now().Sub(now).Milliseconds()
+	}()
+
 	if self.Use != nil {
 		for _, use := range self.Use {
-			if err := use(params); err != nil {
-				return Result{
-					Data:  params.Value,
-					Error: err,
-				}
+			result := use(params)
+
+			if result.Error != nil {
+				res.Error = NewError(params.Key, result.Error.Error())
+				return res
 			}
+
+			res = res.Merge(result)
 		}
 	}
 
 	if self.Args != nil {
 		if err := self.Args.Validate(params.Value); err != nil {
-			return Result{
-				Data:  params.Value,
-				Error: NewError(params.Key, err.Error()),
-			}
+			res.Error = NewError(params.Key, err.Error())
+			return res
 		}
 	}
 
@@ -59,29 +67,26 @@ func (self Field) Resolve(params ResolveParams) Result {
 		value, err := self.Resolver(params)
 
 		if err != nil {
-			return Result{
-				Data:  value,
-				Error: NewError(params.Key, err.Error()),
-			}
+			res.Error = NewError(params.Key, err.Error())
+			return res
 		}
 
 		params.Value = value
 	}
 
 	if self.Type != nil {
-		res := self.Type.Resolve(params)
+		result := self.Type.Resolve(params)
 
-		if res.Error != nil {
-			return Result{
-				Data:  res.Data,
-				Error: NewEmptyError(params.Key).Add(res.Error),
-			}
+		if result.Error != nil {
+			res.Error = NewEmptyError(params.Key).Add(result.Error)
+			return res
 		}
 
-		params.Value = res.Data
+		params.Value = result.Data
 	}
 
-	return Result{Data: params.Value}
+	res.Data = params.Value
+	return res
 }
 
 func (self Field) String() string {

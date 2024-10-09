@@ -1,3 +1,3 @@
 package gq
 
-type Middleware func(params ResolveParams) error
+type Middleware func(params ResolveParams) Result

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/aacebo/gq/query"
 )
@@ -33,19 +34,31 @@ func (self Object[T]) Do(params DoParams) Result {
 }
 
 func (self Object[T]) Resolve(params ResolveParams) Result {
+	now := time.Now()
+	res := Result{Meta: Meta{}}
+
+	defer func() {
+		res.Meta["$elapse"] = time.Now().Sub(now).Milliseconds()
+	}()
+
 	if params.Value == nil || self.Fields == nil {
-		return Result{}
+		return res
 	}
 
 	if self.Use != nil {
 		for _, use := range self.Use {
-			if err := use(params); err != nil {
-				return Result{Error: err}
+			result := use(params)
+
+			if result.Error != nil {
+				res.Error = NewError(params.Key, result.Error.Error())
+				return res
 			}
+
+			res = res.Merge(result)
 		}
 	}
 
-	err := NewEmptyError(self.Name)
+	err := NewEmptyError(params.Key)
 	object := reflect.Indirect(reflect.New(reflect.TypeFor[T]()))
 
 	if object.Kind() == reflect.Pointer {
@@ -79,7 +92,7 @@ func (self Object[T]) Resolve(params ResolveParams) Result {
 			}
 		}
 
-		res := schema.Resolve(ResolveParams{
+		result := schema.Resolve(ResolveParams{
 			Query:   query,
 			Parent:  object.Interface(),
 			Key:     key,
@@ -87,14 +100,15 @@ func (self Object[T]) Resolve(params ResolveParams) Result {
 			Context: params.Context,
 		})
 
-		if res.Error != nil {
-			return res.Error
+		if result.Error != nil {
+			return result.Error
 		}
 
-		if e := self.setKey(key, res.Data, object); e != nil {
+		if e := self.setKey(key, result.Data, object); e != nil {
 			return e
 		}
 
+		res.Meta[key] = result.Meta
 		visited[key] = true
 		return nil
 	}
@@ -108,10 +122,12 @@ func (self Object[T]) Resolve(params ResolveParams) Result {
 	}
 
 	if len(err.Errors) > 0 {
-		return Result{Error: err}
+		res.Error = err
+		return res
 	}
 
-	return Result{Data: object.Interface()}
+	res.Data = object.Interface()
+	return res
 }
 
 func (self Object[T]) Extend(schema Object[T]) Object[T] {
