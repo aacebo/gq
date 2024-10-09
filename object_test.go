@@ -421,4 +421,25 @@ func Test_Object(t *testing.T) {
 			}
 		})
 	})
+
+	t.Run("extend", func(t *testing.T) {
+		t.Run("should extend object", func(t *testing.T) {
+			schema := gq.Object[map[string]any]{
+				Name: "User",
+				Fields: gq.Fields{
+					"email":    gq.Field{},
+					"password": gq.Field{},
+				},
+			}.Extend(gq.Object[map[string]any]{
+				Name: "User",
+				Fields: gq.Fields{
+					"staySignedIn": gq.Field{},
+				},
+			})
+
+			if len(schema.Fields) != 3 {
+				t.FailNow()
+			}
+		})
+	})
 }

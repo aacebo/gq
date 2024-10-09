@@ -77,6 +77,26 @@ func (self Object[T]) Resolve(params Params) (any, error) {
 	return object.Interface(), nil
 }
 
+func (self Object[T]) Extend(schema Object[T]) Object[T] {
+	fields := Fields{}
+
+	for key, value := range self.Fields {
+		fields[key] = value
+	}
+
+	if schema.Fields != nil {
+		for key, value := range schema.Fields {
+			fields[key] = value
+		}
+	}
+
+	return Object[T]{
+		Name:        schema.Name,
+		Description: schema.Description,
+		Fields:      fields,
+	}
+}
+
 func (self Object[T]) String() string {
 	b, _ := json.Marshal(self)
 	return string(b)
