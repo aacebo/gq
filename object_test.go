@@ -584,6 +584,16 @@ func Test_Object(t *testing.T) {
 			if value["email"] != "dev: Updated!@gmail.com" {
 				t.Fatalf("expected `%s`, received `%s`", "dev: Updated!@gmail.com", value["email"])
 			}
+
+			test, exists := res.Meta["test"].(string)
+
+			if !exists {
+				t.Fatalf("expected $meta.test to be string")
+			}
+
+			if test != "my test metadata" {
+				t.Fatalf("expected '%s', received '%s'", "my test metadata", test)
+			}
 		})
 
 		t.Run("should fail on error", func(t *testing.T) {
