@@ -70,7 +70,10 @@ func (self Object[T]) Resolve(params *ResolveParams) Result {
 		return res
 	}
 
-	res.Meta = result.Meta
+	if !result.Meta.Empty() {
+		res.Meta = result.Meta
+	}
+
 	res.Data = result.Data
 	return res
 }
