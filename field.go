@@ -35,7 +35,7 @@ func (self Field) Do(params *DoParams) Result {
 }
 
 func (self Field) Resolve(params *ResolveParams) Result {
-	res := Result{Meta: Meta{}}
+	res := Result{}
 	routes := []Middleware{}
 
 	if self.Use != nil {

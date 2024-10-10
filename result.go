@@ -8,11 +8,22 @@ type Result struct {
 	Error error `json:"error,omitempty"`
 }
 
-func (self Result) Merge(result Result) Result {
+func (self *Result) SetMeta(key string, value any) *Result {
 	if self.Meta == nil {
-		self.Meta = result.Meta
-	} else if result.Meta != nil {
-		self.Meta = self.Meta.Merge(result.Meta)
+		self.Meta = Meta{}
+	}
+
+	self.Meta[key] = value
+	return self
+}
+
+func (self Result) Merge(result Result) Result {
+	if result.Meta != nil {
+		if self.Meta == nil {
+			self.Meta = result.Meta
+		} else {
+			self.Meta = self.Meta.Merge(result.Meta)
+		}
 	}
 
 	if result.Data != nil {

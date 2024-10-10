@@ -4,6 +4,10 @@ import "encoding/json"
 
 type Meta map[string]any
 
+func (self Meta) Empty() bool {
+	return len(self) == 0
+}
+
 func (self Meta) Merge(meta Meta) Meta {
 	for key, value := range meta {
 		self[key] = value

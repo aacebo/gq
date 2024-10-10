@@ -75,7 +75,7 @@ func (self List) Resolve(params *ResolveParams) Result {
 
 func (self List) resolve(params *ResolveParams, _ Resolver) Result {
 	value := reflect.Indirect(reflect.ValueOf(params.Value))
-	res := Result{Meta: Meta{}}
+	res := Result{}
 
 	if !value.IsValid() {
 		return res
@@ -105,7 +105,7 @@ func (self List) resolve(params *ResolveParams, _ Resolver) Result {
 		}
 
 		index.Set(reflect.ValueOf(result.Data))
-		res.Meta[key] = result.Meta
+		res.SetMeta(key, result.Meta)
 	}
 
 	if len(err.Errors) > 0 {

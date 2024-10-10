@@ -116,7 +116,7 @@ func (self Object[T]) String() string {
 }
 
 func (self Object[T]) resolve(params *ResolveParams, _ Resolver) Result {
-	res := Result{Meta: Meta{}}
+	res := Result{}
 
 	if params.Value == nil || self.Fields == nil {
 		return res
@@ -172,7 +172,7 @@ func (self Object[T]) resolve(params *ResolveParams, _ Resolver) Result {
 			return e
 		}
 
-		res.Meta[key] = result.Meta
+		res.SetMeta(key, result.Meta)
 		visited[key] = true
 		return nil
 	}
