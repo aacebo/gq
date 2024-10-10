@@ -72,7 +72,7 @@ q := `{
 	posts {id,body}
 }`
 
-res := schema.Do(gq.DoParams{
+res := schema.Do(&gq.DoParams{
 	Query: q,
 	Value: User{
 		ID: "1",
