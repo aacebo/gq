@@ -17,7 +17,7 @@ type Object[T any] struct {
 	Fields      Fields       `json:"fields,omitempty"`
 }
 
-func (self Object[T]) Do(params DoParams) Result {
+func (self Object[T]) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
 
@@ -25,7 +25,7 @@ func (self Object[T]) Do(params DoParams) Result {
 		return Result{Error: err}
 	}
 
-	return self.Resolve(ResolveParams{
+	return self.Resolve(&ResolveParams{
 		Query:   query,
 		Key:     self.Name,
 		Value:   params.Value,
@@ -33,7 +33,7 @@ func (self Object[T]) Do(params DoParams) Result {
 	})
 }
 
-func (self Object[T]) Resolve(params ResolveParams) Result {
+func (self Object[T]) Resolve(params *ResolveParams) Result {
 	now := time.Now()
 	res := Result{Meta: Meta{}}
 
@@ -92,7 +92,7 @@ func (self Object[T]) Resolve(params ResolveParams) Result {
 			}
 		}
 
-		result := schema.Resolve(ResolveParams{
+		result := schema.Resolve(&ResolveParams{
 			Query:   query,
 			Parent:  object.Interface(),
 			Key:     key,

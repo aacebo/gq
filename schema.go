@@ -30,6 +30,6 @@ func (self ResolveParams) String() string {
 }
 
 type Schema interface {
-	Do(params DoParams) Result
-	Resolve(params ResolveParams) Result
+	Do(params *DoParams) Result
+	Resolve(params *ResolveParams) Result
 }

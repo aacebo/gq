@@ -12,15 +12,15 @@ type Args interface {
 }
 
 type Field struct {
-	Type        Schema                                  `json:"type,omitempty"`
-	Description string                                  `json:"description,omitempty"`
-	Args        Args                                    `json:"args,omitempty"`
-	DependsOn   []string                                `json:"depends_on,omitempty"`
-	Use         []Middleware                            `json:"-"`
-	Resolver    func(params ResolveParams) (any, error) `json:"-"`
+	Type        Schema                                   `json:"type,omitempty"`
+	Description string                                   `json:"description,omitempty"`
+	Args        Args                                     `json:"args,omitempty"`
+	DependsOn   []string                                 `json:"depends_on,omitempty"`
+	Use         []Middleware                             `json:"-"`
+	Resolver    func(params *ResolveParams) (any, error) `json:"-"`
 }
 
-func (self Field) Do(params DoParams) Result {
+func (self Field) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
 
@@ -28,14 +28,14 @@ func (self Field) Do(params DoParams) Result {
 		return Result{Error: err}
 	}
 
-	return self.Resolve(ResolveParams{
+	return self.Resolve(&ResolveParams{
 		Query:   query,
 		Value:   params.Value,
 		Context: params.Context,
 	})
 }
 
-func (self Field) Resolve(params ResolveParams) Result {
+func (self Field) Resolve(params *ResolveParams) Result {
 	now := time.Now()
 	res := Result{Meta: Meta{}}
 

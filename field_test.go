@@ -10,12 +10,12 @@ import (
 func Test_Field(t *testing.T) {
 	t.Run("should resolve", func(t *testing.T) {
 		schema := gq.Field{
-			Resolver: func(params gq.ResolveParams) (any, error) {
+			Resolver: func(params *gq.ResolveParams) (any, error) {
 				return 1, nil
 			},
 		}
 
-		res := schema.Do(gq.DoParams{
+		res := schema.Do(&gq.DoParams{
 			Query: "{}",
 			Value: 2,
 		})
@@ -37,7 +37,7 @@ func Test_Field(t *testing.T) {
 
 	t.Run("should resolve using default value", func(t *testing.T) {
 		schema := gq.Field{}
-		res := schema.Do(gq.DoParams{
+		res := schema.Do(&gq.DoParams{
 			Query: "{}",
 			Value: 1,
 		})

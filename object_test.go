@@ -18,14 +18,14 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -63,7 +63,7 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							email := "dev@gmail.com"
 							return &email, nil
 						},
@@ -71,7 +71,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -99,7 +99,7 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							email := "dev@gmail.com"
 							return &email, nil
 						},
@@ -107,7 +107,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,test}",
 				Value: map[string]string{
 					"id":   "1",
@@ -151,7 +151,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						DependsOn: []string{"name"},
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							parent := params.Parent.(User)
 							email := fmt.Sprintf("%s@gmail.com", parent.Name)
 							return &email, nil
@@ -160,7 +160,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -205,7 +205,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -243,14 +243,14 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -278,14 +278,14 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,test}",
 				Value: map[string]string{
 					"id":   "1",
@@ -313,7 +313,7 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							parent := params.Parent.(User)
 							return fmt.Sprintf("%s@gmail.com", parent.Name), errors.New("a test error")
 						},
@@ -321,7 +321,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -356,7 +356,7 @@ func Test_Object(t *testing.T) {
 								"name": gq.Field{},
 							},
 						},
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							parent := params.Parent.(User)
 							return &parent, nil
 						},
@@ -364,7 +364,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,created_by{id,name}}",
 				Value: map[string]string{
 					"id":   "1",
@@ -403,7 +403,7 @@ func Test_Object(t *testing.T) {
 								},
 							},
 						},
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							return []Org{
 								{ID: "1", Name: "one"},
 								{ID: "2", Name: "two"},
@@ -413,7 +413,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,orgs{id,name}}",
 				Value: map[string]string{
 					"id":   "1",
@@ -486,7 +486,7 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							time.Sleep(100 * time.Millisecond)
 							return "dev@gmail.com", nil
 						},
@@ -494,7 +494,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -527,7 +527,7 @@ func Test_Object(t *testing.T) {
 			schema := gq.Object[map[string]string]{
 				Name: "User",
 				Use: []gq.Middleware{
-					func(params gq.ResolveParams) gq.Result {
+					func(params *gq.ResolveParams) gq.Result {
 						value, ok := params.Value.(map[string]string)
 
 						if !ok {
@@ -547,7 +547,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						DependsOn: []string{"name"},
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							parent := params.Parent.(map[string]string)
 							return fmt.Sprintf("%s@gmail.com", parent["name"]), nil
 						},
@@ -555,7 +555,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",
@@ -600,7 +600,7 @@ func Test_Object(t *testing.T) {
 			schema := gq.Object[map[string]string]{
 				Name: "User",
 				Use: []gq.Middleware{
-					func(params gq.ResolveParams) gq.Result {
+					func(params *gq.ResolveParams) gq.Result {
 						return gq.Result{
 							Error: errors.New("my test error"),
 						}
@@ -611,7 +611,7 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						DependsOn: []string{"name"},
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							parent := params.Parent.(map[string]string)
 							return fmt.Sprintf("%s@gmail.com", parent["name"]), nil
 						},
@@ -619,7 +619,7 @@ func Test_Object(t *testing.T) {
 				},
 			}
 
-			res := schema.Do(gq.DoParams{
+			res := schema.Do(&gq.DoParams{
 				Query: "{id,name,email}",
 				Value: map[string]string{
 					"id":   "1",

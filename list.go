@@ -15,7 +15,7 @@ type List struct {
 	Use         []Middleware `json:"-"`
 }
 
-func (self List) Do(params DoParams) Result {
+func (self List) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
 
@@ -23,7 +23,7 @@ func (self List) Do(params DoParams) Result {
 		return Result{Error: err}
 	}
 
-	return self.Resolve(ResolveParams{
+	return self.Resolve(&ResolveParams{
 		Query:   query,
 		Key:     self.Name,
 		Value:   params.Value,
@@ -31,7 +31,7 @@ func (self List) Do(params DoParams) Result {
 	})
 }
 
-func (self List) Resolve(params ResolveParams) Result {
+func (self List) Resolve(params *ResolveParams) Result {
 	value := reflect.Indirect(reflect.ValueOf(params.Value))
 	now := time.Now()
 	res := Result{Meta: Meta{}}
@@ -67,7 +67,7 @@ func (self List) Resolve(params ResolveParams) Result {
 	for i := 0; i < value.Len(); i++ {
 		key := strconv.Itoa(i)
 		index := value.Index(i)
-		result := self.Type.Resolve(ResolveParams{
+		result := self.Type.Resolve(&ResolveParams{
 			Query:   params.Query,
 			Parent:  params.Value,
 			Key:     key,

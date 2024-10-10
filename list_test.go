@@ -21,7 +21,7 @@ func Test_List(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							return "dev@gmail.com", nil
 						},
 					},
@@ -29,7 +29,7 @@ func Test_List(t *testing.T) {
 			},
 		}
 
-		res := schema.Do(gq.DoParams{
+		res := schema.Do(&gq.DoParams{
 			Query: "{id,name,email}",
 			Value: []map[string]string{{
 				"id":   "1",
@@ -72,7 +72,7 @@ func Test_List(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) (any, error) {
 							email := "dev@gmail.com"
 							return &email, nil
 						},
@@ -81,7 +81,7 @@ func Test_List(t *testing.T) {
 			},
 		}
 
-		res := schema.Do(gq.DoParams{
+		res := schema.Do(&gq.DoParams{
 			Query: "{id,name,email}",
 			Value: []User{{
 				ID:   "1",
