@@ -68,10 +68,7 @@ func (self List) Resolve(params *ResolveParams) Result {
 		return res
 	}
 
-	if !result.Meta.Empty() {
-		res.Meta = result.Meta
-	}
-
+	res.Meta = result.Meta
 	res.Data = result.Data
 	return res
 }
