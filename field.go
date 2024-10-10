@@ -94,7 +94,7 @@ func (self Field) resolve(params *ResolveParams, _ Resolver) Result {
 		result := self.Type.Resolve(params)
 
 		if result.Error != nil {
-			res.Error = NewEmptyError(params.Key).Add(result.Error)
+			res.Error = result.Error
 			return res
 		}
 
