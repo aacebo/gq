@@ -540,6 +540,11 @@ func Test_Object(t *testing.T) {
 				t.Fatalf("expected `%s`, received `%s`", "dev: Updated!@gmail.com", value["email"])
 			}
 
+			if len(res.Meta) != 1 {
+				t.Log(res.Meta)
+				t.Fatalf("expected only 1 $meta key")
+			}
+
 			test, exists := res.Meta["test"].(string)
 
 			if !exists {

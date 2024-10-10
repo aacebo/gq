@@ -35,7 +35,6 @@ func (self Field) Do(params *DoParams) Result {
 }
 
 func (self Field) Resolve(params *ResolveParams) Result {
-	res := Result{}
 	routes := []Middleware{}
 
 	if self.Use != nil {
@@ -59,7 +58,7 @@ func (self Field) Resolve(params *ResolveParams) Result {
 		return routes[i](params, next)
 	}
 
-	result := next(&ResolveParams{
+	res := next(&ResolveParams{
 		Query:   params.Query,
 		Parent:  params.Parent,
 		Key:     params.Key,
@@ -67,13 +66,6 @@ func (self Field) Resolve(params *ResolveParams) Result {
 		Context: params.Context,
 	})
 
-	if result.Error != nil {
-		res.Error = result.Error
-		return res
-	}
-
-	res.Meta = result.Meta
-	res.Data = result.Data
 	return res
 }
 
@@ -106,11 +98,15 @@ func (self Field) resolve(params *ResolveParams, _ Resolver) Result {
 			return res
 		}
 
-		if result.Meta != nil {
+		if result.Meta != nil && !result.Meta.Empty() {
 			res.Meta = res.Meta.Merge(result.Meta)
 		}
 
 		params.Value = result.Data
+	}
+
+	if res.Meta.Empty() {
+		res.Meta = nil
 	}
 
 	res.Data = params.Value

@@ -172,7 +172,10 @@ func (self Object[T]) resolve(params *ResolveParams, _ Resolver) Result {
 			return e
 		}
 
-		res.SetMeta(key, result.Meta)
+		if result.Meta != nil && !result.Meta.Empty() {
+			res.SetMeta(key, result.Meta)
+		}
+
 		visited[key] = true
 		return nil
 	}
@@ -188,6 +191,10 @@ func (self Object[T]) resolve(params *ResolveParams, _ Resolver) Result {
 	if len(err.Errors) > 0 {
 		res.Error = err
 		return res
+	}
+
+	if res.Meta != nil && res.Meta.Empty() {
+		res.Meta = nil
 	}
 
 	res.Data = object.Interface()

@@ -31,7 +31,7 @@ func (self List) Do(params *DoParams) Result {
 }
 
 func (self List) Resolve(params *ResolveParams) Result {
-	res := Result{Meta: Meta{}}
+	res := Result{}
 	routes := []Middleware{}
 
 	if self.Use != nil {
@@ -111,6 +111,10 @@ func (self List) resolve(params *ResolveParams, _ Resolver) Result {
 	if len(err.Errors) > 0 {
 		res.Error = err
 		return res
+	}
+
+	if res.Meta != nil && res.Meta.Empty() {
+		res.Meta = nil
 	}
 
 	res.Data = value.Interface()
