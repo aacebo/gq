@@ -2,13 +2,14 @@ package gq
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/aacebo/gq/query"
 )
 
-type String struct{}
+type Date struct{}
 
-func (self String) Do(params *DoParams) Result {
+func (self Date) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
 
@@ -23,17 +24,17 @@ func (self String) Do(params *DoParams) Result {
 	})
 }
 
-func (self String) Resolve(params *ResolveParams) Result {
+func (self Date) Resolve(params *ResolveParams) Result {
 	switch value := params.Value.(type) {
-	case string:
+	case time.Time:
 		return Result{Data: value}
-	case *string:
+	case *time.Time:
 		return Result{Data: value}
 	}
 
-	return Result{Error: NewError("", "must be a string")}
+	return Result{Error: NewError("", "must be a Date")}
 }
 
-func (self String) MarshalJSON() ([]byte, error) {
-	return json.Marshal("string")
+func (self Date) MarshalJSON() ([]byte, error) {
+	return json.Marshal("Date")
 }
