@@ -138,25 +138,23 @@ func (self Object[T]) resolve(params *ResolveParams, _ Resolver) Result {
 		}
 
 		query := params.Query.Fields[key]
-		schema, exists := self.Fields[key]
+		field, exists := self.Fields[key]
 
 		if !exists {
 			return NewError(key, "field not found")
 		}
 
-		if field, ok := schema.(Field); ok {
-			if field.DependsOn != nil {
-				for _, dependsOn := range field.DependsOn {
-					e := resolve(dependsOn)
+		if field.DependsOn != nil {
+			for _, dependsOn := range field.DependsOn {
+				e := resolve(dependsOn)
 
-					if e != nil {
-						return e
-					}
+				if e != nil {
+					return e
 				}
 			}
 		}
 
-		result := schema.Resolve(&ResolveParams{
+		result := field.Resolve(&ResolveParams{
 			Query:   query,
 			Parent:  object.Interface(),
 			Key:     key,

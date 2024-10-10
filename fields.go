@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-type Fields map[string]Schema
+type Fields map[string]Field
 
 func (self Fields) String() string {
 	b, _ := json.Marshal(self)
