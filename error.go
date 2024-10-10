@@ -26,7 +26,12 @@ func NewEmptyError(key string) Error {
 }
 
 func (self Error) Add(err error) Error {
-	self.Errors = append(self.Errors, err)
+	if err, ok := err.(Error); ok {
+		self.Errors = append(self.Errors, err)
+		return self
+	}
+
+	self.Errors = append(self.Errors, NewError("", err.Error()))
 	return self
 }
 

@@ -64,12 +64,7 @@ func (self List) Resolve(params *ResolveParams) Result {
 	})
 
 	if result.Error != nil {
-		if err, ok := result.Error.(Error); ok {
-			res.Error = NewEmptyError(params.Key).Add(err)
-		} else {
-			res.Error = NewEmptyError(params.Key).Add(NewError("", result.Error.Error()))
-		}
-
+		res.Error = NewEmptyError(params.Key).Add(result.Error)
 		return res
 	}
 
