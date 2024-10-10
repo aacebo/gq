@@ -2,7 +2,6 @@ package gq
 
 import (
 	"encoding/json"
-	"time"
 
 	"github.com/aacebo/gq/query"
 )
@@ -36,25 +35,50 @@ func (self Field) Do(params *DoParams) Result {
 }
 
 func (self Field) Resolve(params *ResolveParams) Result {
-	now := time.Now()
 	res := Result{Meta: Meta{}}
-
-	defer func() {
-		res.Meta["$elapse"] = time.Now().Sub(now).Milliseconds()
-	}()
+	routes := []Middleware{}
 
 	if self.Use != nil {
-		for _, use := range self.Use {
-			result := use(params)
-
-			if result.Error != nil {
-				res.Error = NewError(params.Key, result.Error.Error())
-				return res
-			}
-
-			res = res.Merge(result)
+		for _, route := range self.Use {
+			routes = append(routes, route)
 		}
 	}
+
+	routes = append(routes, self.resolve)
+
+	var next Resolver
+
+	i := -1
+	next = func(params *ResolveParams) Result {
+		i++
+
+		if i > (len(routes) - 1) {
+			return Result{}
+		}
+
+		return routes[i](params, next)
+	}
+
+	result := next(&ResolveParams{
+		Query:   params.Query,
+		Parent:  params.Parent,
+		Key:     params.Key,
+		Value:   params.Value,
+		Context: params.Context,
+	})
+
+	if result.Error != nil {
+		res.Error = result.Error
+		return res
+	}
+
+	res.Meta = result.Meta
+	res.Data = result.Data
+	return res
+}
+
+func (self Field) resolve(params *ResolveParams, _ Resolver) Result {
+	res := Result{Meta: Meta{}}
 
 	if self.Args != nil {
 		if err := self.Args.Validate(params.Value); err != nil {

@@ -19,6 +19,10 @@ func (self Result) Merge(result Result) Result {
 		self.Data = result.Data
 	}
 
+	if result.Error != nil {
+		self.Error = result.Error
+	}
+
 	return self
 }
 

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"time"
 
 	"github.com/aacebo/gq/query"
 )
@@ -34,28 +33,98 @@ func (self Object[T]) Do(params *DoParams) Result {
 }
 
 func (self Object[T]) Resolve(params *ResolveParams) Result {
-	now := time.Now()
 	res := Result{Meta: Meta{}}
+	routes := []Middleware{}
 
-	defer func() {
-		res.Meta["$elapse"] = time.Now().Sub(now).Milliseconds()
-	}()
+	if self.Use != nil {
+		for _, route := range self.Use {
+			routes = append(routes, route)
+		}
+	}
 
-	if params.Value == nil || self.Fields == nil {
+	routes = append(routes, self.resolve)
+
+	var next Resolver
+
+	i := -1
+	next = func(params *ResolveParams) Result {
+		i++
+
+		if i > (len(routes) - 1) {
+			return Result{}
+		}
+
+		return routes[i](params, next)
+	}
+
+	result := next(&ResolveParams{
+		Query:   params.Query,
+		Parent:  params.Parent,
+		Key:     "fields",
+		Value:   params.Value,
+		Context: params.Context,
+	})
+
+	if result.Error != nil {
+		if err, ok := result.Error.(Error); ok {
+			res.Error = NewEmptyError(params.Key).Add(err)
+		} else {
+			res.Error = NewEmptyError(params.Key).Add(NewError("", result.Error.Error()))
+		}
+
 		return res
 	}
 
+	res.Meta = result.Meta
+	res.Data = result.Data
+	return res
+}
+
+func (self Object[T]) Extend(schema Object[T]) Object[T] {
+	fields := Fields{}
+
+	for key, value := range self.Fields {
+		fields[key] = value
+	}
+
+	if schema.Fields != nil {
+		for key, value := range schema.Fields {
+			fields[key] = value
+		}
+	}
+
+	middleware := []Middleware{}
+
 	if self.Use != nil {
 		for _, use := range self.Use {
-			result := use(params)
-
-			if result.Error != nil {
-				res.Error = NewError(params.Key, result.Error.Error())
-				return res
-			}
-
-			res = res.Merge(result)
+			middleware = append(middleware, use)
 		}
+	}
+
+	if schema.Use != nil {
+		for _, use := range schema.Use {
+			middleware = append(middleware, use)
+		}
+	}
+
+	return Object[T]{
+		Name:        schema.Name,
+		Description: schema.Description,
+		Use:         middleware,
+		Fields:      fields,
+	}
+}
+
+func (self Object[T]) String() string {
+	b, _ := json.Marshal(self)
+	return string(b)
+}
+
+func (self Object[T]) resolve(params *ResolveParams, _ Resolver) Result {
+	res := Result{Meta: Meta{}}
+
+	if params.Value == nil || self.Fields == nil {
+		return res
 	}
 
 	err := NewEmptyError(params.Key)
@@ -128,46 +197,6 @@ func (self Object[T]) Resolve(params *ResolveParams) Result {
 
 	res.Data = object.Interface()
 	return res
-}
-
-func (self Object[T]) Extend(schema Object[T]) Object[T] {
-	fields := Fields{}
-
-	for key, value := range self.Fields {
-		fields[key] = value
-	}
-
-	if schema.Fields != nil {
-		for key, value := range schema.Fields {
-			fields[key] = value
-		}
-	}
-
-	middleware := []Middleware{}
-
-	if self.Use != nil {
-		for _, use := range self.Use {
-			middleware = append(middleware, use)
-		}
-	}
-
-	if schema.Use != nil {
-		for _, use := range schema.Use {
-			middleware = append(middleware, use)
-		}
-	}
-
-	return Object[T]{
-		Name:        schema.Name,
-		Description: schema.Description,
-		Use:         middleware,
-		Fields:      fields,
-	}
-}
-
-func (self Object[T]) String() string {
-	b, _ := json.Marshal(self)
-	return string(b)
 }
 
 func (self Object[T]) getKey(key string, value reflect.Value) any {

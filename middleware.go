@@ -1,3 +1,4 @@
 package gq
 
-type Middleware func(params *ResolveParams) Result
+type Resolver func(params *ResolveParams) Result
+type Middleware func(params *ResolveParams, next Resolver) Result

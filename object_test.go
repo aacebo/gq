@@ -83,10 +83,10 @@ func Test_Object(t *testing.T) {
 				t.FailNow()
 			}
 
-			if res.Error.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"fields","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
-					`{"key":"User","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}`,
+					`{"key":"User","errors":[{"key":"fields","errors":[{"key":"email","message":"expected type 'string', received '*string'"}]}]}`,
 					res.Error.Error(),
 				)
 			}
@@ -119,10 +119,10 @@ func Test_Object(t *testing.T) {
 				t.FailNow()
 			}
 
-			if res.Error.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"fields","errors":[{"key":"test","message":"field not found"}]}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
-					`{"key":"User","errors":[{"key":"test","message":"field not found"}]}`,
+					`{"key":"User","errors":[{"key":"fields","errors":[{"key":"test","message":"field not found"}]}]}`,
 					res.Error.Error(),
 				)
 			}
@@ -262,10 +262,10 @@ func Test_Object(t *testing.T) {
 				t.FailNow()
 			}
 
-			if res.Error.Error() != `{"key":"User","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"fields","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
-					`{"key":"User","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}`,
+					`{"key":"User","errors":[{"key":"fields","errors":[{"key":"email","message":"expected type '*string', received 'string'"}]}]}`,
 					res.Error.Error(),
 				)
 			}
@@ -297,10 +297,10 @@ func Test_Object(t *testing.T) {
 				t.FailNow()
 			}
 
-			if res.Error.Error() != `{"key":"User","errors":[{"key":"test","message":"field not found"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"fields","errors":[{"key":"test","message":"field not found"}]}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
-					`{"key":"User","errors":[{"key":"test","message":"field not found"}]}`,
+					`{"key":"User","errors":[{"key":"fields","errors":[{"key":"test","message":"field not found"}]}]}`,
 					res.Error.Error(),
 				)
 			}
@@ -333,10 +333,10 @@ func Test_Object(t *testing.T) {
 				t.FailNow()
 			}
 
-			if res.Error.Error() != `{"key":"User","errors":[{"key":"email","message":"a test error"}]}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"key":"fields","errors":[{"key":"email","message":"a test error"}]}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
-					`{"key":"User","errors":[{"key":"email","message":"a test error"}]}`,
+					`{"key":"User","errors":[{"key":"fields","errors":[{"key":"email","message":"a test error"}]}]}`,
 					res.Error.Error(),
 				)
 			}
@@ -482,6 +482,14 @@ func Test_Object(t *testing.T) {
 		t.Run("should have $elapse", func(t *testing.T) {
 			schema := gq.Object[map[string]string]{
 				Name: "User",
+				Use: []gq.Middleware{
+					func(params *gq.ResolveParams, next gq.Resolver) gq.Result {
+						now := time.Now()
+						res := next(params)
+						res.Meta["$elapse"] = time.Now().Sub(now).Milliseconds()
+						return res
+					},
+				},
 				Fields: gq.Fields{
 					"id":   gq.Field{},
 					"name": gq.Field{},
@@ -527,7 +535,7 @@ func Test_Object(t *testing.T) {
 			schema := gq.Object[map[string]string]{
 				Name: "User",
 				Use: []gq.Middleware{
-					func(params *gq.ResolveParams) gq.Result {
+					func(params *gq.ResolveParams, next gq.Resolver) gq.Result {
 						value, ok := params.Value.(map[string]string)
 
 						if !ok {
@@ -539,7 +547,7 @@ func Test_Object(t *testing.T) {
 						return gq.Result{
 							Meta: gq.Meta{"test": "my test metadata"},
 							Data: value,
-						}
+						}.Merge(next(params))
 					},
 				},
 				Fields: gq.Fields{
@@ -600,10 +608,10 @@ func Test_Object(t *testing.T) {
 			schema := gq.Object[map[string]string]{
 				Name: "User",
 				Use: []gq.Middleware{
-					func(params *gq.ResolveParams) gq.Result {
+					func(params *gq.ResolveParams, next gq.Resolver) gq.Result {
 						return gq.Result{
 							Error: errors.New("my test error"),
-						}
+						}.Merge(next(params))
 					},
 				},
 				Fields: gq.Fields{
@@ -631,10 +639,10 @@ func Test_Object(t *testing.T) {
 				t.FailNow()
 			}
 
-			if res.Error.Error() != `{"key":"User","message":"my test error"}` {
+			if res.Error.Error() != `{"key":"User","errors":[{"message":"my test error"}]}` {
 				t.Fatalf(
 					"expected `%s`, received `%s`",
-					`{"key":"User","message":"my test error"}`,
+					`{"key":"User","errors":[{"message":"my test error"}]}`,
 					res.Error.Error(),
 				)
 			}

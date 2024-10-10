@@ -3,7 +3,6 @@ package gq
 import (
 	"reflect"
 	"strconv"
-	"time"
 
 	"github.com/aacebo/gq/query"
 )
@@ -32,29 +31,59 @@ func (self List) Do(params *DoParams) Result {
 }
 
 func (self List) Resolve(params *ResolveParams) Result {
-	value := reflect.Indirect(reflect.ValueOf(params.Value))
-	now := time.Now()
 	res := Result{Meta: Meta{}}
+	routes := []Middleware{}
 
-	defer func() {
-		res.Meta["$elapse"] = time.Now().Sub(now).Milliseconds()
-	}()
+	if self.Use != nil {
+		for _, route := range self.Use {
+			routes = append(routes, route)
+		}
+	}
 
-	if !value.IsValid() {
+	routes = append(routes, self.resolve)
+
+	var next Resolver
+
+	i := -1
+	next = func(params *ResolveParams) Result {
+		i++
+
+		if i > (len(routes) - 1) {
+			return Result{}
+		}
+
+		return routes[i](params, next)
+	}
+
+	result := next(&ResolveParams{
+		Query:   params.Query,
+		Parent:  params.Parent,
+		Key:     "items",
+		Value:   params.Value,
+		Context: params.Context,
+	})
+
+	if result.Error != nil {
+		if err, ok := result.Error.(Error); ok {
+			res.Error = NewEmptyError(params.Key).Add(err)
+		} else {
+			res.Error = NewEmptyError(params.Key).Add(NewError("", result.Error.Error()))
+		}
+
 		return res
 	}
 
-	if self.Use != nil {
-		for _, use := range self.Use {
-			result := use(params)
+	res.Meta = result.Meta
+	res.Data = result.Data
+	return res
+}
 
-			if result.Error != nil {
-				res.Error = NewError(params.Key, result.Error.Error())
-				return res
-			}
+func (self List) resolve(params *ResolveParams, _ Resolver) Result {
+	value := reflect.Indirect(reflect.ValueOf(params.Value))
+	res := Result{Meta: Meta{}}
 
-			res = res.Merge(result)
-		}
+	if !value.IsValid() {
+		return res
 	}
 
 	if value.Kind() != reflect.Array && value.Kind() != reflect.Slice {
