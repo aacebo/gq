@@ -105,7 +105,10 @@ func (self List) resolve(params *ResolveParams, _ Resolver) Result {
 		}
 
 		index.Set(reflect.ValueOf(result.Data))
-		res.SetMeta(key, result.Meta)
+
+		if result.Meta != nil && !result.Meta.Empty() {
+			res.SetMeta(key, result.Meta)
+		}
 	}
 
 	if len(err.Errors) > 0 {
