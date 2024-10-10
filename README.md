@@ -88,6 +88,17 @@ if res.Error != nil {
 }
 ```
 
+# Features
+
+| Name			             	| Status			   |
+|-------------------------------|----------------------|
+| Object Schema				 	| ✅				  	  |
+| List Schema				 	| ✅				  	  |
+| Field Schema				 	| ✅				  	  |
+| Field Arguments + Validation	| ✅				  	  |
+| Middleware				 	| ✅				  	  |
+| MetaData					 	| ✅				  	  |
+
 # Related
 
 - [Schema Validation](https://github.com/aacebo/owl)
