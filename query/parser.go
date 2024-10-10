@@ -29,15 +29,7 @@ func (self *_Parser) Parse() (Query, error) {
 		return query, err
 	}
 
-	for {
-		if self.curr.Kind == EOF {
-			break
-		}
-
-		if self.match(RIGHT_BRACE) {
-			continue
-		}
-
+	for self.curr.Kind != EOF && self.curr.Kind != RIGHT_BRACE {
 		name, subQuery, err := self.parseField()
 
 		if err != nil {
@@ -49,6 +41,10 @@ func (self *_Parser) Parse() (Query, error) {
 		if !self.match(COMMA) {
 			break
 		}
+	}
+
+	if _, err := self.consume(RIGHT_BRACE, "expected '}'"); err != nil {
+		return query, err
 	}
 
 	return query, nil

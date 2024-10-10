@@ -65,11 +65,9 @@ func Test_Parser(t *testing.T) {
 
 	t.Run("should succeed with subquery", func(t *testing.T) {
 		q, err := query.Parser([]byte(`{
-			users {
-				id,
-				name,
-				created_at
-			}
+			id,
+			users { id, name, created_at },
+			test
 		}`)).Parse()
 
 		if err != nil {
@@ -80,8 +78,8 @@ func Test_Parser(t *testing.T) {
 			t.Fatalf("should have 0 args")
 		}
 
-		if len(q.Fields) != 1 {
-			t.Fatalf("should have 1 field")
+		if len(q.Fields) != 3 {
+			t.Fatalf("should have 3 field")
 		}
 
 		q, exists := q.Fields["users"]
