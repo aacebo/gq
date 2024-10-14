@@ -1,6 +1,8 @@
 package gq
 
 import (
+	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 
@@ -8,14 +10,12 @@ import (
 )
 
 type List struct {
-	Name        string       `json:"name"`
-	Description string       `json:"description,omitempty"`
-	Type        Schema       `json:"type,omitempty"`
-	Use         []Middleware `json:"-"`
+	Type Schema       `json:"type,omitempty"`
+	Use  []Middleware `json:"-"`
 }
 
 func (self List) Key() string {
-	return self.Name
+	return fmt.Sprintf("List[%s]", self.Type.Key())
 }
 
 func (self List) Do(params *DoParams) Result {
@@ -28,7 +28,6 @@ func (self List) Do(params *DoParams) Result {
 
 	return self.Resolve(&ResolveParams{
 		Query:   query,
-		Key:     self.Name,
 		Value:   params.Value,
 		Context: params.Context,
 	})
@@ -126,4 +125,8 @@ func (self List) resolve(params *ResolveParams, _ Resolver) Result {
 
 	res.Data = value.Interface()
 	return res
+}
+
+func (self List) MarshalJSON() ([]byte, error) {
+	return json.Marshal(self.Key())
 }
