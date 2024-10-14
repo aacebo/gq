@@ -8,6 +8,10 @@ import (
 
 type String struct{}
 
+func (self String) Key() string {
+	return "string"
+}
+
 func (self String) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()

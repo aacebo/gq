@@ -16,6 +16,10 @@ type Object[T any] struct {
 	Fields      Fields       `json:"fields,omitempty"`
 }
 
+func (self Object[T]) Key() string {
+	return self.Name
+}
+
 func (self Object[T]) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
@@ -254,6 +258,10 @@ func (self Object[T]) setMapKey(key string, val any, object reflect.Value) error
 
 	if object.CanSet() && object.IsNil() {
 		object.Set(reflect.MakeMapWithSize(reflect.TypeFor[T](), 0))
+	}
+
+	if object.Type().Elem() != value.Type() && value.CanConvert(object.Type().Elem()) {
+		value = value.Convert(object.Type().Elem())
 	}
 
 	if object.Type().Elem() != value.Type() {

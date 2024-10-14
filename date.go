@@ -9,6 +9,10 @@ import (
 
 type Date struct{}
 
+func (self Date) Key() string {
+	return "Date"
+}
+
 func (self Date) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()

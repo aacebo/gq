@@ -14,6 +14,10 @@ type List struct {
 	Use         []Middleware `json:"-"`
 }
 
+func (self List) Key() string {
+	return self.Name
+}
+
 func (self List) Do(params *DoParams) Result {
 	parser := query.Parser([]byte(params.Query))
 	query, err := parser.Parse()
