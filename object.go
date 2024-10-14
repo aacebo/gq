@@ -228,7 +228,7 @@ func (self Object[T]) setKey(key string, val any, value reflect.Value) error {
 		return nil
 	}
 
-	if value.Kind() == reflect.Interface || value.Kind() == reflect.Pointer {
+	if value.Kind() == reflect.Interface {
 		value = value.Elem()
 	}
 
