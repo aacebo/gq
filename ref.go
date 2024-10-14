@@ -7,11 +7,11 @@ import (
 )
 
 type Ref struct {
-	Type Schema `json:"type"`
+	resolve func() Schema
 }
 
 func (self Ref) Key() string {
-	return self.Type.Key()
+	return self.resolve().Key()
 }
 
 func (self Ref) Do(params *DoParams) Result {
@@ -30,7 +30,7 @@ func (self Ref) Do(params *DoParams) Result {
 }
 
 func (self Ref) Resolve(params *ResolveParams) Result {
-	return self.Type.Resolve(params)
+	return self.resolve().Resolve(params)
 }
 
 func (self Ref) MarshalJSON() ([]byte, error) {

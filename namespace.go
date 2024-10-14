@@ -19,7 +19,13 @@ func (self *Namespace) Register(schema Schema) *Namespace {
 }
 
 func (self Namespace) Ref(key string) Ref {
-	return Ref{Type: self.schemas[key]}
+	if _, exists := self.schemas[key]; !exists {
+		panic(fmt.Sprintf("schema '%s' not found", key))
+	}
+
+	return Ref{resolve: func() Schema {
+		return self.schemas[key]
+	}}
 }
 
 func (self Namespace) Do(key string, params *DoParams) Result {
