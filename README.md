@@ -101,6 +101,8 @@ if res.Error != nil {
 | Int							| ⌛					  |
 | Float							| ⌛					  |
 | Bool							| ⌛					  |
+| Namespace						| ✅					  |
+| Ref							| ✅					  |
 | Middleware				 	| ✅				  	  |
 | MetaData					 	| ✅				  	  |
 
