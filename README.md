@@ -96,11 +96,12 @@ if res.Error != nil {
 | List Schema				 	| ✅				  	  |
 | Field Schema				 	| ✅				  	  |
 | Field Arguments + Validation	| ✅				  	  |
-| String						| ⌛					  |
-| Date							| ⌛					  |
+| String						| ✅					  |
+| Date							| ✅					  |
 | Int							| ⌛					  |
 | Float							| ⌛					  |
 | Bool							| ⌛					  |
+| Any							| ⌛					  |
 | Namespace						| ✅					  |
 | Ref							| ✅					  |
 | Middleware				 	| ✅				  	  |
