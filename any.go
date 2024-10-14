@@ -28,7 +28,7 @@ func (self Any) Do(params *DoParams) Result {
 }
 
 func (self Any) Resolve(params *ResolveParams) Result {
-	return Result{}
+	return Result{Data: params.Value}
 }
 
 func (self Any) MarshalJSON() ([]byte, error) {
