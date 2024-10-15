@@ -54,10 +54,10 @@ schema := gq.Object[User]{
 					}
 				}
 			},
-			Resolver: func(params gq.ResolveParams) (any, error) {
+			Resolver: func(params *gq.ResolveParams) gq.Result {
 				user := params.Parent.(User)
 				posts := // ... get some posts ...
-				return posts, nil
+				return gq.Result{Data: posts}
 			},
 		},
 	},
