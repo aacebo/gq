@@ -29,6 +29,6 @@ test.cov:
 
 test.bench:
 	go clean -testcache
-	go test ./... -run=None -bench=. -benchmem
+	go test -bench=. -benchmem -memprofile memory.out
 
 .PHONY: test

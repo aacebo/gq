@@ -606,3 +606,67 @@ func TestObject(t *testing.T) {
 		})
 	})
 }
+
+func BenchmarkObject(t *testing.B) {
+	type Org struct {
+		ID   string `json:"id"`
+		Name string `json:"name"`
+	}
+
+	type User struct {
+		ID    string `json:"id"`
+		Name  string `json:"name"`
+		Email string `json:"email,omitempty"`
+		Orgs  []Org  `json:"orgs,omitempty"`
+	}
+
+	schema := gq.Object[User]{
+		Name: "User",
+		Fields: gq.Fields{
+			"id": gq.Field{
+				Type: gq.String{},
+			},
+			"name": gq.Field{
+				Type: gq.String{},
+			},
+			"email": gq.Field{
+				Type: gq.String{},
+			},
+			"orgs": gq.Field{
+				Type: gq.List{
+					Type: gq.Object[Org]{
+						Name: "Org",
+						Fields: gq.Fields{
+							"id": gq.Field{
+								Type: gq.String{},
+							},
+							"name": gq.Field{
+								Type: gq.String{},
+							},
+						},
+					},
+				},
+				Resolver: func(params *gq.ResolveParams) gq.Result {
+					return gq.Result{
+						Data: []Org{{ID: "1", Name: "dev"}},
+					}
+				},
+			},
+		},
+	}
+
+	for i := 0; i < t.N; i++ {
+		res := schema.Do(&gq.DoParams{
+			Query: "{id,name,email,orgs}",
+			Value: map[string]string{
+				"id":    "1",
+				"name":  "dev",
+				"email": "dev@gmail.com",
+			},
+		})
+
+		if res.Error != nil {
+			t.Fatal(res.Error)
+		}
+	}
+}
