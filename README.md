@@ -30,64 +30,6 @@
 go get github.com/aacebo/gq
 ```
 
-# Usage
-
-```go
-schema := gq.Object[User]{
-	Name:        "User",
-	Description: "...",
-	Fields: gq.Fields{
-		"id":           gq.Field{},
-		"name":         gq.Field{},
-		"email":        gq.Field{},
-		"created_at":   gq.Field{},
-		"updated_at":   gq.Field{},
-		"posts": gq.Field{
-			Type: gq.List{
-				Type: gq.Object[Post]{
-					Name: "Post",
-					Fields: gq.Fields{
-						"id": 			gq.Field{},
-						"body":			gq.Field{},
-						"created_at":   gq.Field{},
-						"updated_at":   gq.Field{},
-					}
-				}
-			},
-			Resolver: func(params *gq.ResolveParams) gq.Result {
-				user := params.Parent.(User)
-				posts := // ... get some posts ...
-				return gq.Result{Data: posts}
-			},
-		},
-	},
-}
-
-q := `{
-	id,
-	name,
-	email,
-	created_at,
-	updated_at,
-	posts {id,body}
-}`
-
-res := schema.Do(&gq.DoParams{
-	Query: q,
-	Value: User{
-		ID: "1",
-		Name: "test",
-		Email: "test@test.com",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	},
-})
-
-if res.Error != nil {
-	panic(res.Error)
-}
-```
-
 # Features
 
 | Name			             		  	| Status			   	 |
