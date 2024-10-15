@@ -6,7 +6,7 @@ import (
 	"github.com/aacebo/gq"
 )
 
-func Test_List(t *testing.T) {
+func TestList(t *testing.T) {
 	type User struct {
 		ID    string  `json:"id"`
 		Name  string  `json:"name"`

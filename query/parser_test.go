@@ -6,7 +6,7 @@ import (
 	"github.com/aacebo/gq/query"
 )
 
-func Test_Parser(t *testing.T) {
+func TestParser(t *testing.T) {
 	t.Run("should succeed with fields", func(t *testing.T) {
 		q, err := query.Parser([]byte(`{
 			id,

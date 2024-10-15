@@ -6,7 +6,7 @@ import (
 	"github.com/aacebo/gq"
 )
 
-func Test_Namespace(t *testing.T) {
+func TestNamespace(t *testing.T) {
 	t.Run("should resolve ref", func(t *testing.T) {
 		ns := gq.New()
 		ns.Register(gq.Object[map[string]string]{

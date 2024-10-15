@@ -8,7 +8,7 @@ import (
 	"github.com/aacebo/gq/middleware"
 )
 
-func Test_Logger(t *testing.T) {
+func TestLogger(t *testing.T) {
 	t.Run("should log resolvers", func(t *testing.T) {
 		schema := gq.Object[map[string]string]{
 			Name: "User",

@@ -8,7 +8,7 @@ import (
 	"github.com/aacebo/gq/middleware"
 )
 
-func Test_Elapse(t *testing.T) {
+func TestElapse(t *testing.T) {
 	t.Run("should have $elapse", func(t *testing.T) {
 		schema := gq.Object[map[string]string]{
 			Name: "User",

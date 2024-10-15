@@ -8,7 +8,7 @@ import (
 	"github.com/aacebo/gq"
 )
 
-func Test_Object(t *testing.T) {
+func TestObject(t *testing.T) {
 	t.Run("map", func(t *testing.T) {
 		t.Run("should resolve", func(t *testing.T) {
 			schema := gq.Object[map[string]string]{
