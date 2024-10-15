@@ -17,9 +17,9 @@ func Test_Elapse(t *testing.T) {
 				"id":   gq.Field{},
 				"name": gq.Field{},
 				"email": gq.Field{
-					Resolver: func(params *gq.ResolveParams) (any, error) {
+					Resolver: func(params *gq.ResolveParams) gq.Result {
 						time.Sleep(100 * time.Millisecond)
-						return "dev@gmail.com", nil
+						return gq.Result{Data: "dev@gmail.com"}
 					},
 				},
 			},

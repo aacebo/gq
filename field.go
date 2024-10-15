@@ -9,12 +9,12 @@ type Args interface {
 }
 
 type Field struct {
-	Type        Schema                                   `json:"type,omitempty"`
-	Description string                                   `json:"description,omitempty"`
-	Args        Args                                     `json:"args,omitempty"`
-	DependsOn   []string                                 `json:"depends_on,omitempty"`
-	Use         []Middleware                             `json:"-"`
-	Resolver    func(params *ResolveParams) (any, error) `json:"-"`
+	Type        Schema       `json:"type,omitempty"`
+	Description string       `json:"description,omitempty"`
+	Args        Args         `json:"args,omitempty"`
+	DependsOn   []string     `json:"depends_on,omitempty"`
+	Use         []Middleware `json:"-"`
+	Resolver    Resolver     `json:"-"`
 }
 
 func (self Field) Resolve(params *ResolveParams) Result {
@@ -63,14 +63,18 @@ func (self Field) resolve(params *ResolveParams, _ Resolver) Result {
 	}
 
 	if self.Resolver != nil {
-		value, err := self.Resolver(params)
+		result := self.Resolver(params)
 
-		if err != nil {
-			res.Error = NewError(params.Key, err.Error())
+		if result.Error != nil {
+			res.Error = NewError(params.Key, result.Error.Error())
 			return res
 		}
 
-		params.Value = value
+		if result.Meta != nil && !result.Meta.Empty() {
+			res.Meta = res.Meta.Merge(result.Meta)
+		}
+
+		params.Value = result.Data
 	}
 
 	if self.Type != nil {

@@ -21,8 +21,8 @@ func Test_List(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
-							return "dev@gmail.com", nil
+						Resolver: func(params *gq.ResolveParams) gq.Result {
+							return gq.Result{Data: "dev@gmail.com"}
 						},
 					},
 				},
@@ -72,9 +72,9 @@ func Test_List(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							email := "dev@gmail.com"
-							return &email, nil
+							return gq.Result{Data: &email}
 						},
 					},
 				},

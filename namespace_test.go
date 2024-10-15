@@ -15,8 +15,8 @@ func Test_Namespace(t *testing.T) {
 				"id":   gq.Field{},
 				"name": gq.Field{},
 				"email": gq.Field{
-					Resolver: func(params *gq.ResolveParams) (any, error) {
-						return "dev@gmail.com", nil
+					Resolver: func(params *gq.ResolveParams) gq.Result {
+						return gq.Result{Data: "dev@gmail.com"}
 					},
 				},
 			},
@@ -29,11 +29,13 @@ func Test_Namespace(t *testing.T) {
 				"name": gq.Field{},
 				"created_by": gq.Field{
 					Type: ns.Ref("User"),
-					Resolver: func(params *gq.ResolveParams) (any, error) {
-						return map[string]string{
-							"id":   "1",
-							"name": "dev",
-						}, nil
+					Resolver: func(params *gq.ResolveParams) gq.Result {
+						return gq.Result{
+							Data: map[string]string{
+								"id":   "1",
+								"name": "dev",
+							},
+						}
 					},
 				},
 			},

@@ -18,6 +18,10 @@ func (self *Namespace) Register(schema Schema) *Namespace {
 	return self
 }
 
+func (self Namespace) Get(key string) Schema {
+	return self.schemas[key]
+}
+
 func (self Namespace) Ref(key string) Ref {
 	return Ref{resolve: func() Schema {
 		return self.schemas[key]

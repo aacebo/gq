@@ -17,8 +17,8 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
-							return "dev@gmail.com", nil
+						Resolver: func(params *gq.ResolveParams) gq.Result {
+							return gq.Result{Data: "dev@gmail.com"}
 						},
 					},
 				},
@@ -62,9 +62,9 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							email := "dev@gmail.com"
-							return &email, nil
+							return gq.Result{Data: &email}
 						},
 					},
 				},
@@ -98,9 +98,9 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							email := "dev@gmail.com"
-							return &email, nil
+							return gq.Result{Data: &email}
 						},
 					},
 				},
@@ -150,10 +150,10 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						DependsOn: []string{"name"},
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							parent := params.Parent.(User)
 							email := fmt.Sprintf("%s@gmail.com", parent.Name)
-							return &email, nil
+							return gq.Result{Data: &email}
 						},
 					},
 				},
@@ -242,8 +242,8 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
-							return "dev@gmail.com", nil
+						Resolver: func(params *gq.ResolveParams) gq.Result {
+							return gq.Result{Data: "dev@gmail.com"}
 						},
 					},
 				},
@@ -277,8 +277,8 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
-							return "dev@gmail.com", nil
+						Resolver: func(params *gq.ResolveParams) gq.Result {
+							return gq.Result{Data: "dev@gmail.com"}
 						},
 					},
 				},
@@ -312,9 +312,12 @@ func Test_Object(t *testing.T) {
 					"id":   gq.Field{},
 					"name": gq.Field{},
 					"email": gq.Field{
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							parent := params.Parent.(User)
-							return fmt.Sprintf("%s@gmail.com", parent.Name), errors.New("a test error")
+							return gq.Result{
+								Data:  fmt.Sprintf("%s@gmail.com", parent.Name),
+								Error: errors.New("a test error"),
+							}
 						},
 					},
 				},
@@ -355,9 +358,9 @@ func Test_Object(t *testing.T) {
 								"name": gq.Field{},
 							},
 						},
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							parent := params.Parent.(User)
-							return &parent, nil
+							return gq.Result{Data: &parent}
 						},
 					},
 				},
@@ -402,11 +405,13 @@ func Test_Object(t *testing.T) {
 								},
 							},
 						},
-						Resolver: func(params *gq.ResolveParams) (any, error) {
-							return []Org{
-								{ID: "1", Name: "one"},
-								{ID: "2", Name: "two"},
-							}, nil
+						Resolver: func(params *gq.ResolveParams) gq.Result {
+							return gq.Result{
+								Data: []Org{
+									{ID: "1", Name: "one"},
+									{ID: "2", Name: "two"},
+								},
+							}
 						},
 					},
 				},
@@ -502,9 +507,9 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						DependsOn: []string{"name"},
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							parent := params.Parent.(map[string]string)
-							return fmt.Sprintf("%s@gmail.com", parent["name"]), nil
+							return gq.Result{Data: fmt.Sprintf("%s@gmail.com", parent["name"])}
 						},
 					},
 				},
@@ -571,9 +576,9 @@ func Test_Object(t *testing.T) {
 					"name": gq.Field{},
 					"email": gq.Field{
 						DependsOn: []string{"name"},
-						Resolver: func(params *gq.ResolveParams) (any, error) {
+						Resolver: func(params *gq.ResolveParams) gq.Result {
 							parent := params.Parent.(map[string]string)
-							return fmt.Sprintf("%s@gmail.com", parent["name"]), nil
+							return gq.Result{Data: fmt.Sprintf("%s@gmail.com", parent["name"])}
 						},
 					},
 				},

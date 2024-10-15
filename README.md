@@ -100,8 +100,8 @@ if res.Error != nil {
 | Date							| ✅					  |
 | Int							| ⌛					  |
 | Float							| ⌛					  |
-| Bool							| ⌛					  |
-| Any							| ⌛					  |
+| Bool							| ✅					  |
+| Any							| ✅					  |
 | Namespace						| ✅					  |
 | Ref							| ✅					  |
 | Middleware				 	| ✅				  	  |
