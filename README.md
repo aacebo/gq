@@ -90,22 +90,18 @@ if res.Error != nil {
 
 # Features
 
-| Name			             	| Status			   |
-|-------------------------------|----------------------|
-| Object Schema				 	| ✅				  	  |
-| List Schema				 	| ✅				  	  |
-| Field Schema				 	| ✅				  	  |
-| Field Arguments + Validation	| ✅				  	  |
-| String						| ✅					  |
-| Date							| ✅					  |
-| Int							| ⌛					  |
-| Float							| ⌛					  |
-| Bool							| ✅					  |
-| Any							| ✅					  |
-| Namespace						| ✅					  |
-| Ref							| ✅					  |
-| Middleware				 	| ✅				  	  |
-| MetaData					 	| ✅				  	  |
+| Name			             		  	| Status			   	 |
+|---------------------------------------|------------------------|
+| [Any](./docs/00.any.md)			  	| ✅					  	|
+| [String](./docs/01.string.md)		  	| ✅					  	|
+| [Int](./docs/02.int.md)			  	| ⌛					  	|
+| [Float](./docs/03.float.md)		  	| ⌛					  	|
+| [Bool](./docs/04.bool.md)			  	| ✅					  	|
+| [Date](./docs/05.date.md)			  	| ✅					  	|
+| [Object](./docs/06.object.md)		  	| ✅				  	  	|
+| [List](./docs/07.list.md)	 		  	| ✅				  	  	|
+| [Namespace](./docs/08.namespace.md) 	| ✅					  	|
+| [Middleware](./docs/09.middleware.md)	| ✅				  	  	|
 
 # Related
 
