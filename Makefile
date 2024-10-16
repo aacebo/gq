@@ -13,7 +13,7 @@ run:
 fmt:
 	gofmt -w ./
 
-make doc:
+doc:
 	godoc -http=:6060
 
 test:
