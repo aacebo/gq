@@ -56,7 +56,7 @@ func (self Field) resolve(params *ResolveParams, _ Resolver) Result {
 	res := Result{Meta: Meta{}}
 
 	if self.Args != nil {
-		if err := self.Args.Validate(params.Value); err != nil {
+		if err := self.Args.Validate(params.Query.Args); err != nil {
 			res.Error = NewError(params.Key, err.Error())
 			return res
 		}
